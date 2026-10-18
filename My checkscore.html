@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3ece6">
+  <title>My Syllabus Checklist | First Year AI-DS</title>
+  <style>
+    :root {
+      --ink: #37352f;
+      --muted: #8a8580;
+      --line: #e9e5e1;
+      --page: #ffffff;
+      --canvas: #eadfd7;
+      --accent: #b9898b;
+      --accent-deep: #8f5f62;
+      --done: #4f8a6e;
+
+      --blue-bg: #e8f1f8;   --blue-ink: #3b6f99;
+      --green-bg: #e8f1ea;  --green-ink: #3f7a57;
+      --orange-bg: #fbeee0; --orange-ink: #b06a2c;
+      --purple-bg: #f1ecf7; --purple-ink: #74589e;
+      --pink-bg: #f9e9ea;   --pink-ink: #a8525c;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--canvas); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, #f6efe9 0, transparent 45%),
+        radial-gradient(circle at 95% 100%, #e3d2c8 0, transparent 50%),
+        var(--canvas);
+      background-attachment: fixed;
+      font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    button { font: inherit; cursor: pointer; }
+
+    .window {
+      width: min(1240px, calc(100% - 32px));
+      margin: 28px auto;
+      background: var(--page);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(90, 60, 50, .18);
+    }
+
+    /* Cover banner */
+    .cover {
+      position: relative;
+      height: 170px;
+      background:
+        radial-gradient(ellipse at 20% 60%, rgba(255,255,255,.75) 0, transparent 35%),
+        radial-gradient(ellipse at 75% 30%, rgba(246, 214, 208, .9) 0, transparent 40%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,.18) 0 2px, transparent 2px 22px),
+        linear-gradient(120deg, #e9d6cf, #d9c2bb 40%, #c9d6cf 75%, #b9cbc4);
+    }
+    .cover-links {
+      position: absolute; top: 14px; right: 16px;
+      display: flex; gap: 8px;
+    }
+    .cover-links a, .cover-links button {
+      padding: 6px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      font-size: .8rem;
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(4px);
+    }
+    .cover-links a:hover, .cover-links button:hover { background: #fff; }
+
+    .page { padding: 0 clamp(16px, 5vw, 64px) 48px; }
+    .page-icon {
+      width: 74px; height: 74px;
+      margin-top: -40px;
+      display: grid; place-items: center;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+      font-size: 42px;
+      position: relative;
+    }
+    h1 {
+      margin: 18px 0 4px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .subtitle { margin: 0 0 22px; color: var(--muted); }
+
+    /* Overall summary */
+    .sem-picker {
+      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 18px;
+    }
+    .sem-picker label {
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: .78rem; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sem-picker select {
+      appearance: none;
+      padding: 8px 38px 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fcfaf8 url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%238f5f62' stroke-width='2'/></svg>") no-repeat right 14px center;
+      color: var(--ink);
+      font: 600 1rem/1.3 Georgia, "Times New Roman", serif;
+      cursor: pointer;
+    }
+    .sem-picker select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .stat { cursor: pointer; transition: border-color .15s, background .15s; }
+    .stat.active { border-color: var(--accent); background: #fbf3f1; }
+    .semester[hidden] { display: none; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+    .stat {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fcfaf8;
+    }
+    .stat-label {
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: .74rem; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .stat-value { margin: 4px 0 8px; font-size: 1.5rem; font-weight: 700; }
+    .stat-value small { font-size: .85rem; font-weight: 500; color: var(--muted); }
+    .bar { height: 8px; border-radius: 99px; background: #efe9e4; overflow: hidden; }
+    .bar > span {
+      display: block; height: 100%; width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+      transition: width .35s ease;
+    }
+
+    /* Layout: board + side column */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 230px;
+      gap: 24px;
+      align-items: start;
+    }
+    .semester { margin-bottom: 34px; }
+    .sem-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      padding-bottom: 8px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .sem-head h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.4rem;
+    }
+    .sem-meta { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .85rem; }
+    .sem-meta .bar { width: 140px; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      padding: 12px 12px 10px;
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .card.blue   { --bg: var(--blue-bg);   --tone: var(--blue-ink); }
+    .card.green  { --bg: var(--green-bg);  --tone: var(--green-ink); }
+    .card.orange { --bg: var(--orange-bg); --tone: var(--orange-ink); }
+    .card.purple { --bg: var(--purple-bg); --tone: var(--purple-ink); }
+    .card.pink   { --bg: var(--pink-bg);   --tone: var(--pink-ink); }
+
+    .card-title {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin: 0 0 2px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: .86rem; font-weight: 700;
+      color: var(--ink);
+    }
+    .card-title .emoji { font-size: 1rem; line-height: 1.2; }
+    .card-code {
+      margin: 0 0 8px 26px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: .7rem; color: var(--muted);
+    }
+    .card .bar { background: rgba(255,255,255,.7); height: 6px; }
+    .card .bar > span { background: var(--tone); }
+    .card-progress {
+      display: flex; align-items: center; gap: 8px;
+      margin: 0 0 8px;
+      font-size: .74rem; color: var(--tone); font-weight: 700;
+    }
+    .card-progress .bar { flex: 1; }
+
+    .modules { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(0,0,0,.06); }
+    .modules li { border-bottom: 1px solid rgba(0,0,0,.06); }
+    .mod-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 2px; }
+    .mod-row input {
+      appearance: none;
+      flex: none;
+      width: 16px; height: 16px; margin: 2px 0 0;
+      border: 1.5px solid #9c968f;
+      border-radius: 3px;
+      background: #fff;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: background .15s, border-color .15s;
+    }
+    .mod-row input:checked { background: var(--tone); border-color: var(--tone); }
+    .mod-row input:checked::after {
+      content: "";
+      width: 4px; height: 8px;
+      margin-top: -2px;
+      border: solid #fff; border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .mod-row input:focus-visible { outline: 2px solid var(--tone); outline-offset: 2px; }
+    .mod-row label { flex: 1; cursor: pointer; font-size: .84rem; line-height: 1.35; }
+    .mod-row label b { color: var(--tone); font-weight: 700; margin-right: 4px; }
+    .mod-row input:checked + label { color: var(--muted); text-decoration: line-through; }
+    .toggle-topics {
+      flex: none;
+      border: 0; background: transparent;
+      color: var(--muted);
+      padding: 0 2px;
+      font-size: .8rem;
+      line-height: 1.4;
+      transition: transform .15s;
+    }
+    .toggle-topics[aria-expanded="true"] { transform: rotate(90deg); }
+    .topics {
+      display: none;
+      margin: 0 0 8px 24px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.65);
+      color: #5d5852;
+      font-size: .76rem;
+      line-height: 1.45;
+    }
+    .topics.open { display: block; }
+
+    .card-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+    .mini-btn {
+      border: 0; border-radius: 5px;
+      padding: 3px 8px;
+      background: rgba(255,255,255,.75);
+      color: var(--tone);
+      font-size: .72rem; font-weight: 700;
+    }
+    .mini-btn:hover { background: #fff; }
+
+    /* Side column */
+    .side { position: sticky; top: 16px; display: grid; gap: 14px; }
+    .quote {
+      padding: 34px 18px;
+      border-radius: 8px;
+      background: #f8f2ee;
+      text-align: center;
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: .28em;
+      line-height: 2;
+      font-size: .82rem;
+      color: #5d5852;
+    }
+    .quote-2 {
+      padding: 30px 18px;
+      border-radius: 8px;
+      background: #c9a3a5;
+      color: #fff;
+      text-align: center;
+      font-size: .74rem;
+      letter-spacing: .2em;
+      line-height: 1.9;
+    }
+    .ring-card {
+      padding: 18px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .ring {
+      --p: 0;
+      width: 120px; height: 120px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: conic-gradient(var(--accent-deep) calc(var(--p) * 1%), #efe9e4 0);
+      transition: background .35s;
+    }
+    .ring::before {
+      content: attr(data-label);
+      width: 92px; height: 92px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid; place-items: center;
+      font-size: 1.4rem; font-weight: 700;
+    }
+    .ring-caption { margin: 0; font-size: .8rem; color: var(--muted); }
+    .celebrate { display: none; margin-top: 8px; color: var(--done); font-weight: 700; font-size: .85rem; }
+    .celebrate.show { display: block; }
+
+    .footer-note { margin-top: 10px; color: var(--muted); font-size: .78rem; }
+
+    @media (max-width: 1020px) {
+      .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .window { width: 100%; margin: 0; border-radius: 0; }
+      .cover { height: 130px; }
+      .board { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+      .side { grid-template-columns: 1fr; }
+      .sem-meta .bar { width: 90px; }
+    }
+    @media print {
+      body { background: #fff; }
+      .window { box-shadow: none; width: 100%; margin: 0; }
+      .cover-links, .card-actions, .toggle-topics { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="cover" role="img" aria-label="Decorative cover banner">
+      <div class="cover-links">
+        <a href="index.html">&larr; Syllabus home</a>
+        <button type="button" id="expandAll">Show all topics</button>
+        <button type="button" id="resetAll">Reset</button>
+      </div>
+    </div>
+
+    <main class="page">
+      <div class="page-icon" aria-hidden="true">&#9989;</div>
+      <h1>My Syllabus Checklist</h1>
+      <p class="subtitle">First Year Computer Engineering (AI &amp; DS) &middot; Terna Engineering College &middot; 2026&ndash;27. Tick a module once you have completed it. Your progress is saved in this browser.</p>
+
+      <div class="sem-picker">
+        <label for="semSelect">Semester</label>
+        <select id="semSelect">
+          <option value="s1">Semester I</option>
+          <option value="s2">Semester II</option>
+        </select>
+      </div>
+
+      <section class="summary" aria-label="Progress summary">
+        <div class="stat" data-stat="s1">
+          <div class="stat-label">Semester I</div>
+          <div class="stat-value" id="s1Value">0% <small>0 / 30 modules</small></div>
+          <div class="bar"><span id="s1Bar"></span></div>
+        </div>
+        <div class="stat" data-stat="s2">
+          <div class="stat-label">Semester II</div>
+          <div class="stat-value" id="s2Value">0% <small>0 / 30 modules</small></div>
+          <div class="bar"><span id="s2Bar"></span></div>
+        </div>
+      </section>
+
+      <div class="layout">
+        <div id="semesters"></div>
+
+        <aside class="side" aria-label="Motivation and overall progress">
+          <div class="ring-card">
+            <div class="ring" id="ring" data-label="0%"></div>
+            <p class="ring-caption" id="ringCaption">Semester I portion completed</p>
+            <p class="celebrate" id="celebrate">Semester complete!</p>
+          </div>
+          <div class="quote">I AM<br>CREATING<br>THE LIFE<br>OF MY<br>DREAMS</div>
+          <div class="quote-2">ONE MODULE<br>AT A TIME,<br>EVERY TICK<br>COUNTS</div>
+        </aside>
+      </div>
+
+      <p class="footer-note">Module titles and topics are taken from the Full Syllabus PDF. Only the theory subjects are listed here, since each of them has six modules.</p>
+    </main>
+  </div>
+
+  <script>
+    const SYLLABUS = [
+      {
+        id: "s1", title: "Semester I",
+        subjects: [
+          { id: "besc101", code: "BESC101", name: "Computational Engineering Mathematics - I", emoji: "\u{1F4D0}", color: "blue", modules: [
+            ["Matrices", "Hermitian, Skew-Hermitian, Unitary and Orthogonal matrices. Rank by Echelon form, Normal form and PAQ form. Homogeneous and non-homogeneous systems, consistency and solutions."],
+            ["Complex Numbers", "De Moivre's theorem. Expansion of sin^nθ and cos^nθ, and of sin nθ and cos nθ. Powers and roots of a complex number."],
+            ["Hyperbolic Functions & Logarithms of Complex Numbers", "Circular and hyperbolic functions of complex numbers. Inverse circular and inverse hyperbolic functions. Separating real and imaginary parts. Logarithm of a complex number."],
+            ["Partial Differentiation", "Partial derivatives of first and higher order for two and three variables. Differentiation of composite functions. Euler's theorem on homogeneous functions and its deductions."],
+            ["Applications of Partial Differentiation & Successive Differentiation", "Maxima and minima of a function of two variables. nth derivative of standard functions. Leibnitz's theorem."],
+            ["Numerical Methods", "Newton-Raphson and Regula-Falsi methods. Gauss-Jacobi and Gauss-Seidel iteration methods for linear systems."]
+          ]},
+          { id: "besc102", code: "BESC102", name: "Basic Electrical & Electronics Engineering", emoji: "\u{26A1}", color: "green", modules: [
+            ["DC Circuits", "Kirchhoff's laws, sources, source transformation, mesh analysis, star-delta. Superposition, Thevenin's, Norton's and maximum power transfer theorems."],
+            ["AC Circuits", "Generation of AC, average and RMS values, phasors. Single-phase R, L, C series and parallel circuits, real, reactive and apparent power. Three-phase star and delta."],
+            ["Single Phase Transformer", "Working principle, types, transformation ratio, ideal vs practical transformer, losses, efficiency and applications."],
+            ["Electrical Machines", "Operation, construction, classification and applications of DC motor, three-phase and single-phase induction motors. Introduction to BLDC motor."],
+            ["Fundamentals of Digital Systems", "Binary, octal, decimal and hexadecimal number systems and conversions. Combinational circuit design using 3 and 4 variable K-maps."],
+            ["Electrical Energy Storage", "Types of batteries. Parameters such as SoC, DoD, energy and power density, C rating. Charging and discharging characteristics."]
+          ]},
+          { id: "besc103", code: "BESC103", name: "Applied Physics for Computer Technology", emoji: "\u{1F52C}", color: "orange", modules: [
+            ["Quantum Physics", "Wave-particle duality, de Broglie waves, Heisenberg's uncertainty principle, photoelectric effect. Quantum computing: qubits, quantum gates, entanglement, Bell states and simple quantum circuits."],
+            ["Semiconductor Devices", "Energy bands, Fermi level, PN junction diode and its IV characteristics. LED, solar cell, Zener diode. LDR, photodiode, phototransistor and basic ADC."],
+            ["Laser and Fiber Optics", "Spontaneous and stimulated emission, population inversion, laser characteristics and applications. Total internal reflection, acceptance angle, numerical aperture, fiber applications."],
+            ["Acoustics and Ultrasonics", "Sound waves, interference, Doppler effect. Architectural acoustics, reverberation and Sabine's formula. Magnetostriction and piezoelectric generation. Applications of ultrasonics."],
+            ["Electromagnetism and Sensors", "Gauss's, Faraday's and Ampere's laws, Maxwell's equations. Hall effect. Magnetic materials. Sensors and transducers, PT100, piezoelectric sensors."],
+            ["Advanced Materials and Nanotechnology", "Nanomaterials and their properties. Carbon nanotubes. Smart materials, superconductivity and Meissner effect. Supercapacitors."]
+          ]},
+          { id: "besc104", code: "BESC104", name: "Programming for Problem Solving Using C", emoji: "\u{1F4BB}", color: "purple", modules: [
+            ["Computational Thinking and C Fundamentals", "Problem solving, algorithms, flowcharts, pseudocode. Structure of a C program, compilation, tokens, keywords, data types, operators, input-output functions."],
+            ["Decision Making and Iterative Problem Solving", "if, if-else, nested if, switch-case. for, while, do-while, nested loops, jump statements and menu-driven programs."],
+            ["Arrays and Strings", "One and two dimensional arrays, matrix operations. Strings, string operations, arrays of strings, string.h functions."],
+            ["Modular Programming with Functions", "Defining and calling functions, call by value and by reference, recursion. Storage classes: auto, static, register, extern."],
+            ["Pointers and Structures", "Pointers, pointer arithmetic, pointer to pointer, pointers and arrays, malloc, calloc, realloc, free. Structures, unions, typedef, nested structures, arrays of structures."],
+            ["File Handling", "Opening, reading, writing and closing text files using fopen(), fscanf(), fprintf() and fclose()."]
+          ]},
+          { id: "besc105", code: "BESC105", name: "Social Innovation and Engineering Ethics", emoji: "\u{1F331}", color: "pink", modules: [
+            ["Social Innovation, Society and Engineering Responsibility", "Meaning and importance of social innovation, the engineer's role in society, and examples of low-cost social solutions."],
+            ["Fundamentals of Engineering Ethics", "Ethics, morals and values. Personal vs professional ethics. Duties of engineers, safety and public interest, honesty, conflict of interest, ethical decision making, case studies, whistleblowing."],
+            ["Community Study, NGO Linkage and Real-Time Problem Identification", "Studying the local community, working with NGOs, and identifying real problems such as waste, water wastage and safety."],
+            ["Sustainable Social Innovation and Practices", "Sustainable Development Goals. Environment, health, safety and society. Cleanliness, hygiene and public health. E-waste management."],
+            ["Engineering Ethics, Responsible Technology and AI Ethics", "Responsible use of technology and AI, data privacy, and ethical considerations in engineering projects."],
+            ["Community-Based Social Innovation Project", "Problem selection, root cause analysis, solution design, prototype, cost and resource analysis, impact analysis and reflection."]
+          ]}
+        ]
+      },
+      {
+        id: "s2", title: "Semester II",
+        subjects: [
+          { id: "besc201", code: "BESC201", name: "Computational Engineering Mathematics - II", emoji: "\u{1F4CA}", color: "blue", modules: [
+            ["Multiple Integration - I", "Double integration in Cartesian and polar form. Evaluation of double integrals by changing to polar coordinates."],
+            ["Multiple Integration - II", "Application of double integration to compute area. Triple integration and its evaluation."],
+            ["Vector Calculus", "Gradient, divergence and curl. Solenoidal and irrotational fields. Line integrals. Green's theorem and Stokes' theorem."],
+            ["Numerical Solution of ODEs and Numerical Integration", "Euler's, modified Euler's and Runge-Kutta fourth order methods. Trapezoidal, Simpson's 1/3rd and 3/8th rules."],
+            ["Linear Programming Problems", "Standard and canonical form, basic and feasible solutions, slack and surplus variables. Simplex method. Duality and the dual simplex method."],
+            ["Non Linear Programming Problems", "NLPP with one equality constraint using Lagrange's multipliers. NLPP with one inequality constraint using Kuhn-Tucker conditions."]
+          ]},
+          { id: "besc202", code: "BESC202", name: "Data Structure for Engineering Science", emoji: "\u{1F5C2}\u{FE0F}", color: "green", modules: [
+            ["Introduction to Data Structures", "Primitive and non-primitive, linear and non-linear data structures. Operations on data structures and the concept of ADT."],
+            ["Stacks", "Stack ADT and operations, array implementation, recursion. Parenthesis checking, infix to postfix conversion and postfix evaluation."],
+            ["Queues", "Queue ADT and operations, array implementation. Circular queue, priority queue and double ended queue."],
+            ["Linked Lists and Dynamic Data Management", "Linked list vs array. Singly, circular and doubly linked lists. Stack and queue using linked lists."],
+            ["Trees and Hierarchical Data", "Tree terminology, binary trees, traversals, binary search tree. AVL tree, B tree, B+ tree, expression tree, Huffman encoding."],
+            ["Graphs and Searching Techniques", "Graph terminology and representation, DFS and BFS. Linear and binary search. Hashing, hash functions, linear probing and chaining."]
+          ]},
+          { id: "besc203", code: "BESC203", name: "Engineering Mechanics & Graphics", emoji: "\u{1F4CF}", color: "orange", modules: [
+            ["System of Forces and Equilibrium", "Resultant of coplanar force systems, moments, couples, Varignon's theorem. Conditions of equilibrium, free body diagrams, support reactions of beams."],
+            ["Kinetics of Particles and Friction", "D'Alembert's principle, inertia force, dynamic equilibrium. Laws of friction, angle of repose, bodies on horizontal and inclined planes."],
+            ["Introduction to Robot Kinematics", "Robot mechanics fundamentals, degrees of freedom, D-H parameters, forward kinematics and homogeneous transformation for a 2-DOF robot."],
+            ["Projections of Points, Lines and Planes", "Projections of points in any quadrant, lines inclined to both reference planes, and planes inclined to both reference planes."],
+            ["Orthographic Projections", "First and third angle projection, different orthographic views. Sectional orthographic projections of simple machine parts."],
+            ["Isometric Views", "Isometric lines, planes and scale. Isometric projection vs isometric view. Isometric views from given orthographic views."]
+          ]},
+          { id: "besc204", code: "BESC204", name: "Foundation of Network Science", emoji: "\u{1F310}", color: "purple", modules: [
+            ["Fundamentals of Smart Networking and OSI Architecture", "LAN, MAN, WAN and topologies. OSI and TCP/IP models. Modes of communication. Network devices. BharatNet and Digital India."],
+            ["Physical and Data Link Layer Technologies", "Guided and unguided media. Data link design issues, framing, error and flow control. Checksum, CRC, Hamming code. Stop-and-wait, Go-Back-N, Selective Repeat. Wireless LAN."],
+            ["Network Layer and Intelligent Internet Routing", "Unicast, multicast, broadcast. IPv4 and IPv6, subnetting and supernetting. Routing algorithms, ARP, RARP, ICMP, IGMP. Congestion control, token and leaky bucket. NAT and SDN."],
+            ["Transport and Session Layer Services", "Port numbers and sockets. TCP and UDP, flow and congestion control. Session establishment, synchronization and dialog control."],
+            ["Presentation and Application Layer Services", "Data representation, encryption and compression basics, character encoding. DNS and other application protocols. Cloud networking and CDN."],
+            ["IoT, AI, Cybersecurity and Sustainable Networking", "IoT, sensors, wireless sensor networks, edge and fog computing. Network security, firewalls, IDS, VPN, cyber ethics. Green computing."]
+          ]},
+          { id: "pcc201", code: "PCC201", name: "Web Technology", emoji: "\u{1F578}\u{FE0F}", color: "pink", modules: [
+            ["Introduction to Web Technology", "WWW, websites vs web applications, browsers, web servers, URL, DNS and client-server architecture."],
+            ["HTML5 Fundamentals", "HTML document structure, formatting tags, lists, tables, hyperlinks, images, forms, semantic tags, audio and video."],
+            ["CSS3 and Responsive Design", "Selectors, colors, backgrounds, borders, box model, fonts, Flexbox, media queries, responsive design and Bootstrap."],
+            ["JavaScript Fundamentals", "Variables, data types, operators, conditionals, loops, functions, arrays, events, DOM manipulation and form validation."],
+            ["Web Hosting and Security", "Hosting, domain registration, FTP, deployment, cookies and sessions, web security and common vulnerabilities."],
+            ["Modern Web Technologies", "APIs, cloud-based web apps, Progressive Web Apps, accessibility standards and front-end frameworks."]
+          ]}
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = "aids-fy-syllabus-checklist-v1";
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { state = {}; }
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+    }
+
+    const root = document.getElementById("semesters");
+
+    function el(tag, attrs, children) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs || {})) {
+        if (k === "text") node.textContent = v;
+        else if (k === "html") node.innerHTML = v;
+        else node.setAttribute(k, v);
+      }
+      (children || []).forEach(c => node.appendChild(c));
+      return node;
+    }
+
+    function render() {
+      SYLLABUS.forEach(sem => {
+        const board = el("div", { class: "board" });
+        sem.subjects.forEach(sub => {
+          const list = el("ul", { class: "modules" });
+          sub.modules.forEach(([title, topics], i) => {
+            const key = `${sub.id}-m${i + 1}`;
+            const inputId = `cb-${key}`;
+            const topicsId = `tp-${key}`;
+            const cb = el("input", { type: "checkbox", id: inputId, "data-key": key });
+            cb.checked = !!state[key];
+            const label = el("label", { for: inputId });
+            label.appendChild(el("b", { text: `M${i + 1}` }));
+            label.appendChild(document.createTextNode(title));
+            const toggle = el("button", {
+              type: "button", class: "toggle-topics",
+              "aria-expanded": "false", "aria-controls": topicsId,
+              "aria-label": `Show topics for module ${i + 1}`, text: "▶"
+            });
+            const topicBox = el("div", { class: "topics", id: topicsId, text: topics });
+            toggle.addEventListener("click", () => {
+              const open = topicBox.classList.toggle("open");
+              toggle.setAttribute("aria-expanded", String(open));
+            });
+            cb.addEventListener("change", () => {
+              if (cb.checked) state[key] = true; else delete state[key];
+              save(); update();
+            });
+            list.appendChild(el("li", {}, [el("div", { class: "mod-row" }, [cb, label, toggle]), topicBox]));
+          });
+
+          const checkAll = el("button", { type: "button", class: "mini-btn", text: "Tick all" });
+          const clearAll = el("button", { type: "button", class: "mini-btn", text: "Clear" });
+          checkAll.addEventListener("click", () => setSubject(sub, true));
+          clearAll.addEventListener("click", () => setSubject(sub, false));
+
+          const card = el("article", { class: `card ${sub.color}`, "data-subject": sub.id }, [
+            el("h3", { class: "card-title" }, [
+              el("span", { class: "emoji", "aria-hidden": "true", text: sub.emoji }),
+              el("span", { text: sub.name })
+            ]),
+            el("p", { class: "card-code", text: sub.code }),
+            el("div", { class: "card-progress" }, [
+              el("span", { class: "count", text: "0/6" }),
+              el("div", { class: "bar" }, [el("span")])
+            ]),
+            list,
+            el("div", { class: "card-actions" }, [checkAll, clearAll])
+          ]);
+          board.appendChild(card);
+        });
+
+        root.appendChild(el("section", { class: "semester", id: sem.id }, [
+          el("div", { class: "sem-head" }, [
+            el("h2", { text: sem.title }),
+            el("div", { class: "sem-meta" }, [
+              el("span", { class: "sem-count", text: "0 / 30" }),
+              el("div", { class: "bar" }, [el("span")])
+            ])
+          ]),
+          board
+        ]));
+      });
+    }
+
+    function setSubject(sub, value) {
+      sub.modules.forEach((_, i) => {
+        const key = `${sub.id}-m${i + 1}`;
+        if (value) state[key] = true; else delete state[key];
+        const cb = document.getElementById(`cb-${key}`);
+        if (cb) cb.checked = value;
+      });
+      save(); update();
+    }
+
+    function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
+
+    const SEM_KEY = "aids-fy-syllabus-selected-sem";
+    const semSelect = document.getElementById("semSelect");
+    let currentSem = "s1";
+    try { const saved = localStorage.getItem(SEM_KEY); if (saved === "s1" || saved === "s2") currentSem = saved; } catch (e) {}
+
+    function showSemester(id) {
+      currentSem = id;
+      semSelect.value = id;
+      try { localStorage.setItem(SEM_KEY, id); } catch (e) {}
+      SYLLABUS.forEach(sem => { document.getElementById(sem.id).hidden = sem.id !== id; });
+      document.querySelectorAll("[data-stat]").forEach(s => s.classList.toggle("active", s.dataset.stat === id));
+      update();
+    }
+    semSelect.addEventListener("change", () => showSemester(semSelect.value));
+    document.querySelectorAll("[data-stat]").forEach(s => s.addEventListener("click", () => showSemester(s.dataset.stat)));
+
+    function update() {
+      const ringStats = {};
+      SYLLABUS.forEach(sem => {
+        let semDone = 0, semTotal = 0;
+        sem.subjects.forEach(sub => {
+          const done = sub.modules.filter((_, i) => state[`${sub.id}-m${i + 1}`]).length;
+          const total = sub.modules.length;
+          semDone += done; semTotal += total;
+          const card = document.querySelector(`[data-subject="${sub.id}"]`);
+          card.querySelector(".count").textContent = `${done}/${total}`;
+          card.querySelector(".card-progress .bar > span").style.width = pct(done, total) + "%";
+        });
+        ringStats[sem.id] = { done: semDone, total: semTotal, title: sem.title };
+        const section = document.getElementById(sem.id);
+        section.querySelector(".sem-count").textContent = `${semDone} / ${semTotal} · ${pct(semDone, semTotal)}%`;
+        section.querySelector(".sem-meta .bar > span").style.width = pct(semDone, semTotal) + "%";
+        document.getElementById(`${sem.id}Value`).innerHTML = `${pct(semDone, semTotal)}% <small>${semDone} / ${semTotal} modules</small>`;
+        document.getElementById(`${sem.id}Bar`).style.width = pct(semDone, semTotal) + "%";
+      });
+      const cur = ringStats[currentSem];
+      const p = pct(cur.done, cur.total);
+      const ring = document.getElementById("ring");
+      ring.style.setProperty("--p", p);
+      ring.setAttribute("data-label", p + "%");
+      document.getElementById("ringCaption").textContent = `${cur.title} portion completed`;
+      document.getElementById("celebrate").textContent = `${cur.title} complete!`;
+      document.getElementById("celebrate").classList.toggle("show", cur.total > 0 && cur.done === cur.total);
+    }
+
+    document.getElementById("resetAll").addEventListener("click", () => {
+      const sem = SYLLABUS.find(s => s.id === currentSem);
+      if (!confirm(`Clear every tick for ${sem.title}?`)) return;
+      sem.subjects.forEach(sub => setSubject(sub, false));
+    });
+
+    const expandBtn = document.getElementById("expandAll");
+    expandBtn.addEventListener("click", () => {
+      const open = expandBtn.textContent.startsWith("Show");
+      document.querySelectorAll(".topics").forEach(t => t.classList.toggle("open", open));
+      document.querySelectorAll(".toggle-topics").forEach(b => b.setAttribute("aria-expanded", String(open)));
+      expandBtn.textContent = open ? "Hide all topics" : "Show all topics";
+    });
+
+    render();
+    showSemester(currentSem);
+  </script>
+</body>
+</html>
