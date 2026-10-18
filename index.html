@@ -3,62 +3,157 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b16">
+  <meta name="theme-color" content="#f1efe7">
   <title>First Year AI-DS Engineering | Terna Engineering College</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #17243a;
-      --muted: #607089;
-      --line: #dce4ef;
+      --ink: #20232b;
+      --muted: #697078;
+      --line: #e7e4dc;
       --paper: #fff;
-      --canvas: #080b16;
-      --blue: #2457d6;
-      --blue-pale: #edf3ff;
+      --canvas: #f1efe7;
+      --blue: #344b70;
+      --blue-pale: #eef1f5;
       --green: #13836a;
       --shadow: 0 12px 30px rgba(25, 43, 76, .07);
     }
     * { box-sizing: border-box; }
-    html { min-height: 100%; background: #080b16; }
+    html { min-height: 100%; background: var(--canvas); scroll-behavior: smooth; }
     body {
       position: relative;
       min-height: 100vh;
       margin: 0;
       color: var(--ink);
-      background: #080b16;
+      background: var(--canvas);
       font: 15px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
     }
-    #wallpaper {
-      position: fixed;
-      z-index: 0;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      content: "";
-      pointer-events: none;
+    .site-content {
+      width: min(1280px, calc(100% - 48px));
+      min-height: calc(100vh - 64px);
+      margin: 32px auto;
+      overflow: hidden;
+      background: #f8f7f1;
+      box-shadow: 0 14px 44px rgba(51, 48, 38, .09);
     }
-    .site-content { position: relative; z-index: 1; }
     button, input, select { font: inherit; }
     a { color: var(--blue); }
     .hero {
-      padding: 46px max(22px, calc((100% - 1180px) / 2)) 35px;
-      color: white;
-      background:
-        radial-gradient(ellipse at 86% 6%, rgba(117, 164, 255, .34), transparent 35%),
-        linear-gradient(120deg, #122746, #1e4b91 72%, #315fc2);
+      padding: 24px clamp(24px, 5.5vw, 76px) 28px;
+      color: var(--ink);
+      background: #f8f7f1;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      margin-bottom: 42px;
+    }
+    .brand {
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -.045em;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .brand span { color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+    .site-nav { display: flex; align-items: center; gap: clamp(12px, 2vw, 27px); }
+    .site-nav a {
+      color: #343840;
+      font-size: .84rem;
+      font-weight: 650;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .site-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .site-nav .nav-action {
+      padding: 9px 15px;
+      border-radius: 999px;
+      background: #e8e6df;
+    }
+    .hero-content { max-width: 850px; }
+    .hero-links { display: flex; flex-wrap: wrap; gap: 9px; margin: 0 0 17px; }
+    .hero-links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 37px;
+      padding: 7px 14px;
+      color: #343840;
+      border: 1px solid #bcb9b0;
+      border-radius: 999px;
+      font-size: .84rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .hero-links a:first-child { color: #fff; border-color: #20232b; background: #20232b; }
+    .hero-links a:hover { transform: translateY(-1px); }
+    .hero h1 {
+      max-width: 770px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.65rem, 6vw, 4.25rem);
+      font-weight: 500;
+      line-height: .99;
+      letter-spacing: -.055em;
     }
     .eyebrow {
-      margin: 0 0 9px;
-      color: #c6d8ff;
-      font-size: .78rem;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: .76rem;
       font-weight: 750;
-      letter-spacing: .14em;
+      letter-spacing: .12em;
       text-transform: uppercase;
     }
-    h1 { max-width: 850px; margin: 0; font-size: clamp(2rem, 5vw, 3.45rem); line-height: 1.08; letter-spacing: -.04em; }
-    .hero p { max-width: 780px; margin: 15px 0 0; color: #e3ebfa; font-size: 1.02rem; }
-    .hero .source { color: #c6d8ff; font-size: .84rem; }
-    main { width: min(1180px, calc(100% - 36px)); margin: 26px auto 60px; }
+    .hero p { max-width: 680px; margin: 14px 0 0; color: #5e6268; font-size: .98rem; }
+    .hero .source { margin-top: 7px; color: #7b7e81; font-size: .8rem; }
+    main { width: min(1100px, calc(100% - 64px)); margin: 0 auto 60px; }
+    .semester-tiles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 0 0 28px;
+    }
+    .semester-tile {
+      position: relative;
+      display: flex;
+      min-height: 208px;
+      align-items: flex-end;
+      overflow: hidden;
+      padding: 22px;
+      color: #fff;
+      border-radius: 15px;
+      background: linear-gradient(125deg, #315c77, #76a2a6 58%, #dfc9a0);
+      text-decoration: none;
+      isolation: isolate;
+    }
+    .semester-tile::before, .semester-tile::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 50%;
+    }
+    .semester-tile::before { width: 250px; height: 250px; right: 8%; top: -90px; }
+    .semester-tile::after { width: 170px; height: 170px; right: 17%; top: -44px; }
+    .semester-tile:nth-child(2) { background: linear-gradient(125deg, #75523e, #bd8055 55%, #e3c28a); }
+    .tile-number {
+      position: absolute;
+      top: 7px;
+      right: 26px;
+      color: rgba(255, 255, 255, .28);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(6rem, 11vw, 9rem);
+      line-height: 1;
+    }
+    .tile-copy { position: relative; max-width: 340px; }
+    .tile-copy span { display: block; margin-bottom: 5px; color: rgba(255,255,255,.83); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .tile-copy strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 500; line-height: 1.08; }
+    .tile-copy small { display: block; margin-top: 8px; color: rgba(255,255,255,.9); font-size: .85rem; }
+    .semester-tile:hover { box-shadow: 0 12px 28px rgba(43, 46, 48, .16); transform: translateY(-2px); }
+    .semester-tile, .hero-links a { transition: transform .18s ease, box-shadow .18s ease; }
     .overview {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -83,7 +178,8 @@
       align-items: center;
       gap: 11px;
       padding: 12px;
-      margin-bottom: 22px;
+      margin-bottom: 28px;
+      border-radius: 999px;
     }
     .controls input, .controls select {
       width: 100%;
@@ -91,7 +187,7 @@
       padding: 9px 12px;
       color: var(--ink);
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 999px;
       background: white;
       outline: none;
     }
@@ -117,11 +213,11 @@
       justify-content: space-between;
       gap: 16px;
       margin: 0 0 12px;
-      color: #f4f7ff;
+      color: var(--ink);
     }
     .semester-heading h2 { margin: 0; font-size: 1.8rem; letter-spacing: -.035em; }
-    .semester-heading p { margin: 3px 0 0; color: #c5d0e6; }
-    .semester-total { color: #a9f2da; font-size: .9rem; font-weight: 750; text-align: right; white-space: nowrap; }
+    .semester-heading p { margin: 3px 0 0; color: var(--muted); }
+    .semester-total { color: #65705d; font-size: .9rem; font-weight: 750; text-align: right; white-space: nowrap; }
     .theme { padding: 17px 19px; margin: 0 0 14px; background: linear-gradient(120deg, white, #f8faff); }
     .theme strong { display: block; margin-bottom: 3px; }
     .theme p { margin: 0; color: var(--muted); font-size: .91rem; }
@@ -319,17 +415,32 @@
     .abbreviation dt { min-width: 45px; color: var(--blue); font-weight: 800; }
     .abbreviation dd { margin: 0; color: #394961; }
     .footer { padding: 18px 0 0; color: #8290a4; font-size: .78rem; text-align: center; }
-    @media (max-width: 800px) {
-      .overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .controls { position: static; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 1000px) {
+      .controls { position: static; grid-template-columns: 1fr 1fr; border-radius: 18px; }
       .controls input { grid-column: 1 / -1; }
       .button-row { grid-column: 1 / -1; }
       .button-row .button { flex: 1; }
+    }
+    @media (max-width: 800px) {
+      .site-content { width: min(100% - 28px, 1280px); margin: 14px auto; }
+      .topbar { margin-bottom: 32px; }
+      .site-nav { gap: 12px; }
+      .site-nav a { font-size: .78rem; }
+      main { width: min(100% - 44px, 1100px); }
+      .overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .cards { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
-      main { width: min(100% - 22px, 1180px); }
-      .hero { padding: 34px 18px 29px; }
+      .site-content { width: 100%; min-height: 100vh; margin: 0; }
+      .hero { padding: 20px 19px 25px; }
+      .topbar { align-items: flex-start; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+      .site-nav { width: 100%; justify-content: space-between; gap: 8px; }
+      .site-nav a { font-size: .72rem; }
+      .site-nav .nav-action { padding: 7px 10px; }
+      .hero h1 { font-size: clamp(2.55rem, 13vw, 3.45rem); }
+      main { width: calc(100% - 32px); }
+      .semester-tiles { grid-template-columns: 1fr; gap: 11px; margin-bottom: 22px; }
+      .semester-tile { min-height: 172px; padding: 18px; }
       .overview { gap: 8px; }
       .stat { padding: 12px; }
       .stat strong { font-size: 1.3rem; }
@@ -340,11 +451,11 @@
     }
     @media print {
       html, body { min-height: 0; color: #17243a; background: white !important; }
-      #wallpaper { display: none !important; }
+      .site-content { width: 100%; min-height: 0; margin: 0; overflow: visible; box-shadow: none; background: white; }
       .hero { padding: 20px 0; color: var(--ink); background: white; }
       .hero p, .hero .source, .eyebrow { color: var(--muted); }
       main { width: 100%; margin: 15px 0; }
-      .controls, .button-row, .notes + .footer { display: none !important; }
+      .topbar, .hero-links, .semester-tiles, .controls, .button-row, .notes + .footer { display: none !important; }
       .overview { grid-template-columns: repeat(4, 1fr); }
       .cards { grid-template-columns: 1fr; }
       .course, .theme, .stat { box-shadow: none; break-inside: avoid; }
@@ -371,15 +482,47 @@
   </style>
 </head>
 <body>
-  <canvas id="wallpaper" aria-hidden="true"></canvas>
   <div class="site-content">
   <header class="hero">
-    <p class="eyebrow">Terna Engineering College · Academic Year 2026–27</p>
-    <h1>First Year Artificial Intelligence and Data Science (AI-DS) Engineering</h1>
-    <p>A semester-by-semester study guide to the F.E. syllabus. Find a course, compare assessment marks and credits, and open its complete objectives, outcomes, and topic outline.</p>
-    <p class="source">Based on the college’s Rev-2026 syllabus under NEP 2020 · Semester I and Semester II</p>
+    <div class="topbar">
+      <a class="brand" href="#top" aria-label="Terna AI and Data Science syllabus home">Terna<span> · AI&amp;DS</span></a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="#semester-1">Semester I</a>
+        <a href="#semester-2">Semester II</a>
+        <a href="#reference-title">Resources</a>
+        <a class="nav-action" href="#search">Find a course</a>
+      </nav>
+    </div>
+    <div class="hero-content" id="top">
+      <p class="eyebrow">Terna Engineering College · Academic Year 2026–27</p>
+      <div class="hero-links" aria-label="Jump to a semester">
+        <a href="#semester-1">◉ &nbsp;Semester I</a>
+        <a href="#semester-2">✳ &nbsp;Semester II</a>
+      </div>
+      <h1>Your first year,<br>in focus.</h1>
+      <p>A clear guide to your Artificial Intelligence and Data Science engineering syllabus. Explore courses, credits, assessments, and the topics you’ll study each semester.</p>
+      <p class="source">Based on the college’s Rev-2026 syllabus under NEP 2020</p>
+    </div>
   </header>
   <main>
+    <section class="semester-tiles" aria-label="Explore semesters">
+      <a class="semester-tile" href="#semester-1">
+        <span class="tile-number" aria-hidden="true">01</span>
+        <span class="tile-copy">
+          <span>Build your foundations</span>
+          <strong>Semester I</strong>
+          <small>12 courses · 20 credits · 775 assessment marks&nbsp; →</small>
+        </span>
+      </a>
+      <a class="semester-tile" href="#semester-2">
+        <span class="tile-number" aria-hidden="true">02</span>
+        <span class="tile-copy">
+          <span>Keep exploring</span>
+          <strong>Semester II</strong>
+          <small>14 courses · 24 credits · 850 assessment marks&nbsp; →</small>
+        </span>
+      </a>
+    </section>
     <section class="overview" aria-label="Syllabus totals">
       <div class="stat"><span>Semester I · courses</span><strong>12</strong></div>
       <div class="stat"><span>Semester I · marks / credits</span><strong>775 / 20</strong></div>
@@ -997,80 +1140,6 @@
       printState = undefined;
     });
 
-    const wallpaper = document.getElementById("wallpaper");
-    const context = wallpaper.getContext("2d");
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let width = 0;
-    let height = 0;
-    let frame;
-    let nodes = [];
-    let lastFrame = 0;
-
-    function resizeWallpaper() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      wallpaper.width = Math.round(width * ratio);
-      wallpaper.height = Math.round(height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const count = Math.min(90, Math.max(28, Math.round(width * height / 18000)));
-      nodes = Array.from({ length: count }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - .5) * .19,
-        vy: (Math.random() - .5) * .19,
-        radius: 1 + Math.random() * 1.8,
-        hue: Math.random() > .58 ? 267 : 190 + Math.random() * 35
-      }));
-      drawWallpaper();
-    }
-
-    function drawWallpaper(timestamp = 0) {
-      if (!context || (!motionPreference.matches && timestamp - lastFrame < 32)) {
-        if (!context) return;
-        if (!motionPreference.matches) frame = requestAnimationFrame(drawWallpaper);
-        return;
-      }
-      lastFrame = timestamp;
-      context.clearRect(0, 0, width, height);
-      const linkDistance = Math.max(100, Math.min(155, width * .12));
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        if (!motionPreference.matches) {
-          node.x += node.vx;
-          node.y += node.vy;
-          if (node.x < -10 || node.x > width + 10) node.vx *= -1;
-          if (node.y < -10 || node.y > height + 10) node.vy *= -1;
-        }
-        for (let j = i + 1; j < nodes.length; j++) {
-          const other = nodes[j];
-          const distance = Math.hypot(node.x - other.x, node.y - other.y);
-          if (distance < linkDistance) {
-            context.strokeStyle = `rgba(108, 150, 223, ${(1 - distance / linkDistance) * .22})`;
-            context.lineWidth = .7;
-            context.beginPath();
-            context.moveTo(node.x, node.y);
-            context.lineTo(other.x, other.y);
-            context.stroke();
-          }
-        }
-        context.beginPath();
-        context.fillStyle = `hsla(${node.hue}, 95%, 72%, .8)`;
-        context.shadowBlur = 11;
-        context.shadowColor = `hsla(${node.hue}, 100%, 70%, .65)`;
-        context.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-        context.fill();
-      }
-      context.shadowBlur = 0;
-      if (!motionPreference.matches) frame = requestAnimationFrame(drawWallpaper);
-    }
-
-    window.addEventListener("resize", resizeWallpaper);
-    motionPreference.addEventListener("change", () => {
-      if (frame) cancelAnimationFrame(frame);
-      drawWallpaper();
-    });
-    resizeWallpaper();
   </script>
 </body>
 </html>
