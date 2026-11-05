@@ -1,0 +1,2548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3ece6">
+  <title>My Study Planner | First Year AI-DS</title>
+  <script>
+    // Same saved theme as the syllabus page; falls back to the system preference.
+    (function () {
+      var theme = null;
+      try { theme = localStorage.getItem("theme"); } catch (error) {}
+      if (theme !== "light" && theme !== "dark") {
+        theme = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      --ink: #37352f;
+      --muted: #7d7873;
+      --line: #e9e5e1;
+      --page: #ffffff;
+      --panel: #fcfaf8;
+      --canvas: #eadfd7;
+      --accent: #b9898b;
+      --accent-deep: #8f5f62;
+      --done: #3f7a5e;
+      --warn-bg: #fbeee0;
+      --warn-ink: #8f5420;
+      --danger: #a8404c;
+
+      --blue-bg: #e8f1f8;   --blue-ink: #3b6f99;
+      --green-bg: #e8f1ea;  --green-ink: #3f7a57;
+      --orange-bg: #fbeee0; --orange-ink: #a8622a;
+      --purple-bg: #f1ecf7; --purple-ink: #74589e;
+      --pink-bg: #f9e9ea;   --pink-ink: #a8525c;
+      --plain-bg: #f1eeeb;  --plain-ink: #6b655f;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--canvas); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, #f6efe9 0, transparent 45%),
+        radial-gradient(circle at 95% 100%, #e3d2c8 0, transparent 50%),
+        var(--canvas);
+      background-attachment: fixed;
+      font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+
+    .window {
+      width: min(1240px, calc(100% - 32px));
+      margin: 28px auto;
+      background: var(--page);
+      border-radius: 14px;
+      overflow: hidden;
+      overflow: clip; /* Unlike hidden, this lets the table header stick while scrolling. */
+      box-shadow: 0 20px 50px rgba(90, 60, 50, .18);
+    }
+
+    /* Cover banner */
+    .cover {
+      position: relative;
+      height: 150px;
+      background:
+        radial-gradient(ellipse at 20% 60%, rgba(255,255,255,.75) 0, transparent 35%),
+        radial-gradient(ellipse at 75% 30%, rgba(246, 214, 208, .9) 0, transparent 40%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,.18) 0 2px, transparent 2px 22px),
+        linear-gradient(120deg, #e9d6cf, #d9c2bb 40%, #c9d6cf 75%, #b9cbc4);
+    }
+    .cover-links {
+      position: absolute; top: 14px; right: 16px; left: 16px;
+      display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px;
+    }
+    .cover-links a, .cover-links button {
+      padding: 6px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      font-size: .8rem;
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(4px);
+    }
+    .cover-links a:hover, .cover-links button:hover { background: #fff; }
+    .cover-links .theme-toggle { display: inline-grid; place-items: center; width: 32px; padding: 0; }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .theme-toggle .icon-sun { display: none; }
+    :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+    :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+    .page { padding: 0 clamp(16px, 5vw, 64px) 48px; }
+    .page-icon {
+      width: 74px; height: 74px;
+      margin-top: -40px;
+      display: grid; place-items: center;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+      font-size: 42px;
+      position: relative;
+    }
+    h1 {
+      margin: 18px 0 4px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    h2, h3 { font-family: Georgia, "Times New Roman", serif; }
+    .subtitle { margin: 0 0 22px; color: var(--muted); }
+    .mono {
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: .74rem; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sem-picker { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; }
+    .sem-picker select {
+      appearance: none;
+      padding: 8px 38px 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel) url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%238f5f62' stroke-width='2'/></svg>") no-repeat right 14px center;
+      font: 600 1rem/1.3 Georgia, "Times New Roman", serif;
+      cursor: pointer;
+    }
+
+    /* Summary tiles */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .stat-value { margin: 4px 0 8px; font-size: 1.4rem; font-weight: 700; line-height: 1.25; }
+    .stat-note { margin: 6px 0 0; color: var(--muted); font-size: .78rem; }
+    .bar { height: 8px; border-radius: 99px; background: #efe9e4; overflow: hidden; }
+    .bar > span {
+      display: block; height: 100%; width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+      transition: width .35s ease;
+    }
+
+    /* Notices */
+    .banners { display: grid; gap: 8px; margin-bottom: 18px; }
+    .banner {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 8px 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+      font-size: .88rem;
+    }
+    .banner p { flex: 1 1 320px; margin: 0; }
+    .banner strong { font-weight: 700; }
+
+    .btn {
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--page);
+      font-size: .84rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { border-color: var(--accent-deep); background: var(--accent-deep); color: #fff; }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.danger { color: var(--danger); }
+    .btn:disabled { opacity: .5; cursor: default; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .tabs button {
+      padding: 9px 14px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .tabs button:hover { color: var(--ink); }
+    .tabs button[aria-selected="true"] { border-bottom-color: var(--accent-deep); color: var(--ink); }
+
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .panel-head h2 { margin: 0; font-size: 1.3rem; }
+    .panel-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    /* Today */
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 24px; align-items: start; }
+    .group-label { margin: 18px 0 6px; }
+    .group-label.late { color: var(--danger); }
+    .tasks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    .task { display: flex; align-items: flex-start; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+    .check {
+      appearance: none;
+      flex: none;
+      width: 18px; height: 18px; margin: 2px 0 0;
+      border: 1.5px solid #9c968f;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: background .15s, border-color .15s;
+    }
+    .check:checked { background: var(--tone, var(--done)); border-color: var(--tone, var(--done)); }
+    .check:checked::after {
+      content: "";
+      width: 4px; height: 9px;
+      margin-top: -2px;
+      border: solid #fff; border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .task-main { flex: 1; min-width: 0; }
+    .task-title {
+      display: block;
+      padding: 0; border: 0; background: none;
+      text-align: left; font-weight: 600; line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .task-title:hover { text-decoration: underline; }
+    .task.is-done .task-title { color: var(--muted); font-weight: 500; text-decoration: line-through; }
+    .task-meta { margin: 2px 0 0; color: var(--muted); font-size: .8rem; }
+    .pill {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 5px;
+      background: var(--bg);
+      color: var(--tone);
+      font-size: .72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .blue   { --bg: var(--blue-bg);   --tone: var(--blue-ink); }
+    .green  { --bg: var(--green-bg);  --tone: var(--green-ink); }
+    .orange { --bg: var(--orange-bg); --tone: var(--orange-ink); }
+    .purple { --bg: var(--purple-bg); --tone: var(--purple-ink); }
+    .pink   { --bg: var(--pink-bg);   --tone: var(--pink-ink); }
+    .plain  { --bg: var(--plain-bg);  --tone: var(--plain-ink); }
+    .empty {
+      padding: 22px 16px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .empty p { margin: 0 0 10px; }
+    .empty p:last-child { margin-bottom: 0; }
+
+    .side { display: grid; gap: 14px; }
+    .side-card { padding: 16px 14px; border: 1px solid var(--line); border-radius: 8px; }
+    .side-card h3 { margin: 0 0 10px; font-size: 1rem; }
+    .ring-card { text-align: center; }
+    .ring {
+      --p: 0;
+      width: 112px; height: 112px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: conic-gradient(var(--accent-deep) calc(var(--p) * 1%), #efe9e4 0);
+    }
+    .ring::before {
+      content: attr(data-label);
+      width: 86px; height: 86px;
+      border-radius: 50%;
+      background: var(--page);
+      display: grid; place-items: center;
+      font-size: 1.3rem; font-weight: 700;
+    }
+    .ring-caption { margin: 0; color: var(--muted); font-size: .8rem; }
+    .date-list { list-style: none; margin: 0; padding: 0; font-size: .86rem; }
+    .date-list li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+    .date-list li:last-child { border-bottom: 0; }
+    .date-list span:last-child { flex: none; color: var(--muted); text-align: right; }
+    .mini-progress { display: grid; gap: 9px; font-size: .8rem; }
+    .mini-progress .bar { margin-top: 3px; height: 6px; }
+    .mini-progress .row { display: flex; justify-content: space-between; gap: 8px; }
+    .mini-progress .bar > span { background: var(--tone); }
+
+    /* Week */
+    .week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .day {
+      display: flex; flex-direction: column; gap: 6px;
+      min-height: 220px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .day.is-today { border-color: var(--accent-deep); box-shadow: inset 0 0 0 1px var(--accent-deep); }
+    .day.is-over { background: rgba(185, 137, 139, .16); }
+    .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+    .day-name { font-weight: 700; font-size: .86rem; }
+    .day-load { color: var(--muted); font-size: .7rem; white-space: nowrap; }
+    .day-load.over { color: var(--danger); font-weight: 700; }
+    .day-add { margin-top: auto; padding: 4px; border: 1px dashed var(--line); border-radius: 6px; background: transparent; color: var(--muted); font-size: .75rem; }
+    .day-add:hover { border-color: var(--accent); color: var(--ink); }
+    .milestone {
+      padding: 4px 6px;
+      border-radius: 5px;
+      background: var(--accent-deep);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .chip { display: flex; gap: 6px; padding: 6px; border-radius: 6px; background: var(--bg); }
+    .chip[draggable="true"] { cursor: grab; }
+    .chip .check { width: 15px; height: 15px; margin-top: 1px; }
+    .chip .check:checked::after { width: 3px; height: 7px; }
+    .chip .task-title { font-size: .76rem; font-weight: 600; }
+    .chip .task-meta { margin-top: 1px; font-size: .68rem; }
+    .chip .chip-course { color: var(--tone); font-size: .68rem; font-weight: 700; }
+    .chip.is-done { opacity: .62; }
+    .chip.is-done .task-title { text-decoration: line-through; }
+
+    /* Subjects table */
+    .subject-note { margin: 0 0 14px; color: var(--muted); font-size: .86rem; }
+    .subject-note strong { color: var(--danger); }
+    .tracker-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-bottom: 10px; }
+    .tracker-bar .field { font-size: .76rem; color: var(--muted); }
+    .tracker-bar select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--page); color: var(--ink); font-size: .84rem; font-weight: 400; }
+    .tracker-actions { display: flex; gap: 6px; margin-left: auto; }
+    .status-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .status-filter button {
+      padding: 5px 11px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: var(--page);
+      font-size: .82rem;
+      font-weight: 600;
+    }
+    .status-filter button:hover { border-color: var(--accent); }
+    .status-filter button[aria-pressed="true"] { border-color: var(--accent-deep); background: var(--accent-deep); color: #fff; }
+    .tracker { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: .86rem; }
+    .tracker caption { position: absolute; left: -9999px; }
+    .tracker thead th {
+      position: sticky; top: 0; z-index: 2;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--line);
+      background: var(--page);
+      color: var(--muted);
+      font: 400 .72rem ui-monospace, "Cascadia Mono", Consolas, monospace;
+      letter-spacing: .05em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+    .tracker td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .tracker .item-row:hover td { background: var(--panel); }
+    .c-done { width: 54px; }
+    .c-subject { width: 120px; }
+    .c-type { width: 112px; }
+    .c-due { width: 112px; }
+    .c-status { width: 158px; }
+    .c-planned { width: 134px; }
+    .c-rev { width: 70px; }
+    .tracker .check { margin-top: 1px; }
+    .tracker .check:checked::after { width: 4px; height: 9px; }
+    .tracker label { cursor: pointer; }
+    .tracker label b { margin-right: 5px; color: var(--tone); }
+    .item-detail, .planned-left { display: block; color: var(--muted); font-size: .76rem; }
+    .item-row.is-done label { color: var(--muted); text-decoration: line-through; }
+    .type-text { color: var(--muted); font-size: .8rem; }
+    .due-btn {
+      padding: 0;
+      border: 0; background: none;
+      text-align: left;
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+      white-space: nowrap;
+    }
+    .due-btn:hover { color: var(--accent-deep); }
+    .st { font-weight: 700; font-size: .82rem; white-space: nowrap; }
+    .st-late, .planned-late { color: var(--danger); }
+    .st-soon { color: var(--warn-ink); }
+    .st-later { color: var(--muted); font-weight: 500; }
+    .st-done { color: var(--done); }
+    .no-rev { color: var(--muted); }
+    .check:indeterminate { background: var(--tone, var(--done)); border-color: var(--tone, var(--done)); }
+    .check:indeterminate::after { content: ""; width: 9px; height: 2px; background: #fff; }
+    .item-line { display: flex; align-items: flex-start; gap: 4px; }
+    .mod-toggle { flex: none; width: 18px; font-size: 1rem; padding: 0; border: 0; background: none; color: var(--tone); line-height: 1.4; }
+    .mod-spacer { flex: none; width: 18px; }
+    .sub-row td { background: var(--panel); font-size: .82rem; }
+    .sub-row .c-item { padding-left: 32px; }
+    .group-row th { padding: 9px 10px; border-bottom: 1px solid var(--line); background: var(--bg); font-weight: 400; text-align: left; }
+    .group-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+    .group-toggle {
+      flex: 1 1 280px; min-width: 0;
+      padding: 0; border: 0; background: none;
+      font-weight: 700;
+      text-align: left;
+    }
+    .group-toggle .chev { display: inline-block; width: 14px; color: var(--tone); }
+    .group-code { margin-left: 4px; color: var(--muted); font-size: .74rem; font-weight: 400; }
+    .group-count { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; color: var(--tone); font-size: .78rem; font-weight: 700; }
+    .group-count .bar { width: 90px; height: 6px; background: rgba(255,255,255,.7); }
+    .group-count .bar > span { background: var(--tone); }
+    .group-next { flex: 0 1 auto; color: var(--muted); font-size: .78rem; }
+    .mini-btn { flex: none; padding: 3px 8px; border: 0; border-radius: 5px; background: rgba(255,255,255,.75); color: var(--tone); font-size: .74rem; font-weight: 700; }
+    .mini-btn:hover { background: #fff; }
+    .tracker-empty { padding: 24px 12px; color: var(--muted); text-align: center; }
+    .tracker-empty .btn { margin-left: 8px; }
+    .due-list { list-style: none; margin: 0; padding: 0; font-size: .82rem; }
+    .due-list li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+    .due-list li:last-child { border-bottom: 0; }
+    .due-list .when { display: block; color: var(--muted); font-size: .74rem; }
+    .due-list .when.is-late { color: var(--danger); font-weight: 700; }
+    .dialog-note { margin: 0; color: var(--muted); font-size: .8rem; }
+
+    /* Plan settings */
+    .plan-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    fieldset { margin: 0 0 18px; padding: 0; border: 0; }
+    legend { margin-bottom: 8px; padding: 0; font: 700 1.05rem Georgia, "Times New Roman", serif; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .field { display: grid; align-content: start; gap: 3px; font-size: .82rem; font-weight: 600; }
+    .field small { color: var(--muted); font-weight: 400; }
+    .field input, .field select, dialog input, dialog select {
+      width: 100%;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--page);
+      font-weight: 400;
+    }
+    .hours-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .hours-grid .field { text-align: center; }
+    .hours-grid input { padding: 7px 2px; text-align: center; }
+    .field-help { margin: 8px 0 0; color: var(--muted); font-size: .8rem; }
+    .check-card { padding: 16px; border: 1px solid var(--line); border-radius: 8px; }
+    .check-card + .check-card { margin-top: 14px; }
+    .check-card h3 { margin: 0 0 10px; font-size: 1.05rem; }
+    .check-result { margin: 0 0 12px; font-weight: 600; }
+    .check-result.ok { color: var(--done); }
+    .check-result.bad { color: var(--danger); }
+    .check-card dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; font-size: .86rem; }
+    .check-card dd { margin: 0; font-weight: 600; text-align: right; }
+    .check-card p:not(.check-result), .check-card ul { margin: 0 0 8px; font-size: .84rem; }
+    .check-card ul { padding-left: 18px; }
+    .check-card .warn-line { margin-top: 10px; color: var(--warn-ink); }
+    .form-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .status { color: var(--done); font-size: .84rem; font-weight: 600; }
+
+    dialog {
+      width: min(440px, calc(100% - 32px));
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--page);
+      color: var(--ink);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+    }
+    dialog::backdrop { background: rgba(30, 20, 18, .45); }
+    dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
+    dialog form { display: grid; gap: 12px; }
+    .dialog-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+    .dialog-actions .btn.danger { margin-right: auto; }
+
+    .footer-note { margin: 28px 0 0; color: var(--muted); font-size: .78rem; }
+
+    @media (max-width: 1020px) {
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout, .plan-grid { grid-template-columns: 1fr; }
+      .c-subject { width: 96px; }
+      .c-type { width: 88px; }
+      .c-due { width: 98px; }
+      .c-status { width: 140px; }
+      .c-planned { width: 112px; }
+      .c-rev { width: 62px; }
+      .tracker td, .tracker thead th { padding-left: 7px; padding-right: 7px; }
+      .week-grid { grid-template-columns: 1fr; }
+      .day { min-height: 0; }
+      .day-add { margin-top: 2px; }
+    }
+    /* On narrow screens each table row becomes a small stacked block. */
+    @media (max-width: 860px) {
+      .tracker, .tracker tbody, .tracker tr, .tracker td, .tracker th { display: block; }
+      .tracker thead { position: absolute; left: -9999px; }
+      .tracker-actions { margin-left: 0; }
+      .tracker .item-row, .tracker .sub-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 3px 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+      .tracker .item-row td, .tracker .sub-row td { width: auto; padding: 0; border: 0; }
+      .tracker .item-row .c-done, .tracker .sub-row .c-done { grid-column: 1; grid-row: 1 / span 5; }
+      .tracker .item-row td:not(.c-done), .tracker .sub-row td:not(.c-done) { grid-column: 2 / 4; }
+      .tracker .item-row td.c-due, .tracker .sub-row td.c-due { grid-column: 2; }
+      .tracker .item-row td.c-status, .tracker .sub-row td.c-status { grid-column: 3; text-align: right; }
+      .tracker td[data-label]::before { margin-right: 5px; color: var(--muted); content: attr(data-label) ":"; font-size: .76rem; }
+      .tracker .planned-left { display: inline; margin-left: 5px; }
+      .tracker .c-rev.none { display: none; }
+      .tracker .c-rev .check { display: inline-grid; vertical-align: middle; }
+      .tracker .is-done .c-planned { display: none; }
+      .tracker .sub-row { background: var(--panel); }
+      .tracker .sub-row td { background: none; }
+      .tracker .sub-row .c-item { padding-left: 0; }
+      .tracker .c-type { font-size: .76rem; }
+    }
+    @media (max-width: 640px) {
+      .window { width: 100%; margin: 0; border-radius: 0; }
+      .cover { height: 130px; }
+      .summary { gap: 8px; }
+      .tabs button { padding: 9px 8px; font-size: .9rem; }
+      .stat { padding: 10px 12px; }
+      .stat-value { font-size: 1.05rem; }
+      .field-grid { grid-template-columns: 1fr; }
+      .hours-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    /* Dark theme: screen only, so printing keeps the light colours. */
+    @media screen {
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --ink: #ece6e1;
+        --muted: #a59d96;
+        --line: #3a3331;
+        --page: #24201f;
+        --panel: #2a2523;
+        --canvas: #171313;
+        --accent: #d4a5a7;
+        --accent-deep: #a97376;
+        --done: #7cc39f;
+        --warn-bg: #352719;
+        --warn-ink: #e8b27c;
+        --danger: #ef9aa5;
+        --blue-bg: #1f2c38;   --blue-ink: #8fbbe0;
+        --green-bg: #1f2e26;  --green-ink: #86c49f;
+        --orange-bg: #352719; --orange-ink: #e3a468;
+        --purple-bg: #2b2438; --purple-ink: #b9a0e0;
+        --pink-bg: #36232a;   --pink-ink: #e29aa3;
+        --plain-bg: #322c2a;  --plain-ink: #c9c1ba;
+      }
+      :root[data-theme="dark"] body {
+        background:
+          radial-gradient(circle at 10% 0%, #2a2220 0, transparent 45%),
+          radial-gradient(circle at 95% 100%, #2c201f 0, transparent 50%),
+          var(--canvas);
+        background-attachment: fixed;
+      }
+      :root[data-theme="dark"] .window { box-shadow: 0 20px 50px rgba(0, 0, 0, .5); }
+      :root[data-theme="dark"] .cover {
+        background:
+          radial-gradient(ellipse at 20% 60%, rgba(255,255,255,.08) 0, transparent 35%),
+          radial-gradient(ellipse at 75% 30%, rgba(185, 131, 134, .3) 0, transparent 40%),
+          repeating-linear-gradient(115deg, rgba(255,255,255,.04) 0 2px, transparent 2px 22px),
+          linear-gradient(120deg, #3b2c2c, #352a2b 40%, #25332f 75%, #1f2d2a);
+      }
+      :root[data-theme="dark"] .cover-links a,
+      :root[data-theme="dark"] .cover-links button { background: rgba(30, 25, 24, .72); }
+      :root[data-theme="dark"] .cover-links a:hover,
+      :root[data-theme="dark"] .cover-links button:hover { background: #3a3331; }
+      :root[data-theme="dark"] .page-icon { background: #2e2826; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+      :root[data-theme="dark"] .bar { background: #3a3331; }
+      :root[data-theme="dark"] .group-count .bar { background: rgba(255,255,255,.12); }
+      :root[data-theme="dark"] .check { border-color: #8a827b; background: #1b1716; }
+      :root[data-theme="dark"] .check:checked { border-color: var(--tone, var(--done)); background: var(--tone, var(--done)); }
+      :root[data-theme="dark"] .check:checked::after { border-color: #1b1716; }
+      :root[data-theme="dark"] .ring { background: conic-gradient(var(--accent) calc(var(--p) * 1%), #3a3331 0); }
+      :root[data-theme="dark"] .mini-btn { background: rgba(255,255,255,.1); }
+      :root[data-theme="dark"] .mini-btn:hover { background: rgba(255,255,255,.18); }
+    }
+    @media print {
+      body { background: #fff; }
+      .window { box-shadow: none; width: 100%; margin: 0; }
+      .cover, .page-icon, .sem-picker, .banners, .tabs, .panel-actions, .day-add, .side, .mini-btn, .tracker-bar, .status-filter { display: none; }
+      .layout { display: block; }
+      .tracker thead th { position: static; }
+      .tracker tr { break-inside: avoid; }
+      .week-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="cover" role="img" aria-label="Decorative cover banner">
+      <div class="cover-links">
+        <a href="index.html">&larr; Syllabus home</a>
+        <a href="My%20checkscore.html">My checklist</a>
+        <button type="button" id="printPage">Print</button>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode" title="Switch to dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <main class="page">
+      <div class="page-icon" aria-hidden="true">&#128197;</div>
+      <h1>My Study Planner</h1>
+      <p class="subtitle">First Year Computer Engineering (AI &amp; DS) &middot; Terna Engineering College &middot; 2026&ndash;27. A day-by-day schedule for every subject and module. Your plan is saved in this browser.</p>
+
+      <div class="sem-picker">
+        <label class="mono" for="semSelect">Semester</label>
+        <select id="semSelect">
+          <option value="s1">Semester I</option>
+          <option value="s2">Semester II</option>
+        </select>
+      </div>
+
+      <section class="summary" id="summary" aria-label="Progress summary"></section>
+      <div class="banners" id="banners" aria-live="polite"></div>
+
+      <div class="tabs" role="tablist" aria-label="Planner views">
+        <button type="button" role="tab" id="tab-today" aria-controls="panel-today" data-tab="today">Today</button>
+        <button type="button" role="tab" id="tab-week" aria-controls="panel-week" data-tab="week">Week</button>
+        <button type="button" role="tab" id="tab-subjects" aria-controls="panel-subjects" data-tab="subjects">Subjects</button>
+        <button type="button" role="tab" id="tab-plan" aria-controls="panel-plan" data-tab="plan">Dates &amp; hours</button>
+      </div>
+
+      <section id="panel-today" role="tabpanel" aria-labelledby="tab-today">
+        <div class="layout">
+          <div>
+            <div class="panel-head">
+              <h2 id="todayTitle">Today</h2>
+              <div class="panel-actions"><button type="button" class="btn" id="addToday">+ Add task</button></div>
+            </div>
+            <div id="todayList"></div>
+          </div>
+          <aside class="side" aria-label="Today's progress and key dates">
+            <div class="side-card ring-card">
+              <div class="ring" id="ring" data-label="0%"></div>
+              <p class="ring-caption" id="ringCaption"></p>
+            </div>
+            <div class="side-card">
+              <h3>Submissions due next</h3>
+              <ul class="due-list" id="dueNext"></ul>
+            </div>
+            <div class="side-card">
+              <h3>Key dates</h3>
+              <ul class="date-list" id="keyDates"></ul>
+            </div>
+            <div class="side-card">
+              <h3>Exam subjects</h3>
+              <div class="mini-progress" id="miniProgress"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="panel-week" role="tabpanel" aria-labelledby="tab-week" hidden>
+        <div class="panel-head">
+          <h2 id="weekTitle">Next 7 days</h2>
+          <div class="panel-actions">
+            <button type="button" class="btn" id="weekPrev" aria-label="Previous 7 days">&larr;</button>
+            <button type="button" class="btn" id="weekNow">Today</button>
+            <button type="button" class="btn" id="weekNext" aria-label="Next 7 days">&rarr;</button>
+          </div>
+        </div>
+        <div class="week-grid" id="weekGrid"></div>
+        <p class="field-help">Drag a task to another day, or click its name to change the date.</p>
+      </section>
+
+      <section id="panel-subjects" role="tabpanel" aria-labelledby="tab-subjects" hidden>
+        <p class="subject-note" id="subjectNote"></p>
+        <div class="tracker-bar">
+          <label class="field">Subject
+            <select id="tSubject"></select>
+          </label>
+          <label class="field">Work
+            <select id="tType">
+              <option value="">All work</option>
+              <option value="learn">Modules and experiments</option>
+              <option value="assignment">Assignments</option>
+              <option value="termwork">Term work and reviews</option>
+              <option value="viva">Viva prep</option>
+            </select>
+          </label>
+          <label class="field">Arrange
+            <select id="tView">
+              <option value="subject">By subject</option>
+              <option value="due">By due date</option>
+            </select>
+          </label>
+          <label class="field" id="tActivityWrap" hidden>NSS or Yoga (confirm with the college)
+            <select id="tActivity"></select>
+          </label>
+          <div class="tracker-actions">
+            <button type="button" class="btn" id="tCollapse">Expand all</button>
+            <button type="button" class="btn" id="tSubs">Show sub-modules</button>
+            <button type="button" class="btn" id="tAdd">+ Add assignment</button>
+          </div>
+        </div>
+        <div class="status-filter" id="tStatus" role="group" aria-label="Filter by status"></div>
+        <div id="subjectBoards"></div>
+      </section>
+
+      <section id="panel-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+        <div class="plan-grid">
+          <form id="planForm">
+            <fieldset>
+              <legend>Dates</legend>
+              <div class="field-grid">
+                <label class="field">Semester started on
+                  <input type="date" id="fSemStart" required>
+                  <small>Due dates count from this date.</small>
+                </label>
+                <label class="field">First end-semester exam
+                  <input type="date" id="fEse" required>
+                </label>
+                <label class="field">Start planning from
+                  <input type="date" id="fStart">
+                  <small>Leave blank to start today.</small>
+                </label>
+                <label class="field">IAT-I
+                  <input type="date" id="fIat1">
+                  <small>Optional. Adds revision for M1&ndash;M3.</small>
+                </label>
+                <label class="field">IAT-II
+                  <input type="date" id="fIat2">
+                  <small>Optional. Adds revision for M4&ndash;M6.</small>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Study hours you can give each day</legend>
+              <div class="hours-grid" id="hoursGrid"></div>
+              <p class="field-help" id="hoursTotal"></p>
+            </fieldset>
+            <fieldset>
+              <legend>Study depth</legend>
+              <label class="field">How much of the syllabus self-learning time to plan
+                <select id="fPace">
+                  <option value="40">40% &middot; catching up</option>
+                  <option value="60">60% &middot; balanced</option>
+                  <option value="80">80% &middot; thorough</option>
+                  <option value="100">100% &middot; all self-learning hours</option>
+                </select>
+              </label>
+              <p class="field-help" id="paceHelp"></p>
+            </fieldset>
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Save and rebuild plan</button>
+              <span class="status" id="planStatus" role="status"></span>
+            </div>
+            <p class="field-help">Rebuilding re-slots unfinished tasks from today onwards. Completed tasks, tasks you added and tasks you moved stay where they are.</p>
+          </form>
+
+          <div>
+            <div class="check-card">
+              <h3>Does the plan fit?</h3>
+              <div id="planCheck"></div>
+            </div>
+            <div class="check-card">
+              <h3>How time is estimated</h3>
+              <ul>
+                <li><strong>Theory modules:</strong> each subject's self-learning hours from the syllabus, shared across its modules by lecture hours, in sessions of up to 1 hour.</li>
+                <li><strong>Revision:</strong> 30 minutes per theory module, after first study.</li>
+                <li><strong>IAT revision:</strong> 45 minutes per theory subject in the three days before a test you've dated.</li>
+                <li><strong>Tutorial sheet:</strong> 45 minutes. <strong>Lab experiment write-up:</strong> 30 minutes.</li>
+                <li><strong>Nirman Lab step or monthly review:</strong> 1 hour. <strong>Workshop or skills module:</strong> 30 minutes.</li>
+                <li><strong>Assignment:</strong> 1 hour. <strong>Term work submission:</strong> 45 minutes. <strong>Viva prep, mini project or quiz:</strong> 2 hours.</li>
+              </ul>
+              <p>Time in class isn't scheduled, only your own study. Only the theory estimate comes from the syllabus; the others are starting points you can change on any task.</p>
+              <p><strong>Due dates:</strong> the syllabus sets 15 weeks of teaching but no dates, so these are targets counted from your semester start. Assignments fall in weeks 6 and 11, mini projects and quizzes in week 13, term work in week 15 and viva prep in week 16.</p>
+            </div>
+            <div class="check-card">
+              <h3>Back up your plan</h3>
+              <p>Browser data can be cleared. A backup file holds this plan and your checklist ticks.</p>
+              <div class="form-actions">
+                <button type="button" class="btn" id="exportData">Download backup</button>
+                <button type="button" class="btn" id="importData">Restore backup</button>
+                <input type="file" id="importFile" accept="application/json,.json" aria-label="Choose a backup file" hidden>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer-note">Which assignments, term work and orals each course needs comes from the syllabus; their dates are targets, so replace them with the dates your faculty gives. Courses, modules, experiments and marks follow the Full Syllabus PDF (Rev-2026). Ticks on theory modules are shared with <a href="My%20checkscore.html">My checklist</a>. Questions based on self-learning topics are not asked in the IATs or end-semester exam, so 60% is the default study depth.</p>
+    </main>
+  </div>
+
+  <dialog id="taskDialog" aria-labelledby="dialogTitle">
+    <form id="taskForm" method="dialog">
+      <h2 id="dialogTitle">Add task</h2>
+      <label class="field">Task
+        <input type="text" id="dTitle" maxlength="160" required>
+      </label>
+      <label class="field">Subject
+        <select id="dCourse"></select>
+      </label>
+      <div class="dialog-row">
+        <label class="field">Date
+          <input type="date" id="dDate" required>
+        </label>
+        <label class="field">Minutes
+          <input type="number" id="dMinutes" min="5" max="600" step="5" required>
+        </label>
+      </div>
+      <p class="dialog-note" id="dNote"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn danger" id="dDelete">Delete</button>
+        <button type="button" class="btn" id="dCancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dueDialog" aria-labelledby="dueTitle">
+    <form id="dueForm" method="dialog">
+      <h2 id="dueTitle">Change due date</h2>
+      <p class="dialog-note" id="dueItem"></p>
+      <label class="field">Due date
+        <input type="date" id="dueDate" required>
+      </label>
+      <p class="dialog-note" id="dueSuggested"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn danger" id="dueReset">Use suggested date</button>
+        <button type="button" class="btn" id="dueCancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // What each course must hand in, from its "Assessment" section in the syllabus. The syllabus gives
+    // no dates, so "week" is a target within the teaching term. Theory subjects are assessed only by
+    // IATs and the end-semester exam, so they have nothing here.
+    const assignments = () => [
+      { id: "a1", kind: "assignment", title: "Journal assignment 1", detail: "Journal needs at least 2 assignments", week: 6, minutes: 60 },
+      { id: "a2", kind: "assignment", title: "Journal assignment 2", detail: "Journal needs at least 2 assignments", week: 11, minutes: 60 }
+    ];
+    const miniProject = label => ({ id: "mini", kind: "mini", title: label, detail: "10 marks of term work", week: 13, minutes: 120 });
+    const termWork = need => ({ id: "tw", kind: "submission", title: "Submit term work", detail: need, week: 15, minutes: 45 });
+    const viva = title => ({ id: "viva", kind: "viva", title, week: 16, minutes: 120 });
+    const nirmanWork = () => [
+      { id: "r1", kind: "review", title: "Month 1 review: logbook started, plan presented", detail: "5 marks", day: 30, minutes: 60 },
+      { id: "r2", kind: "review", title: "Month 2 review: mid-design log and visuals", detail: "10 marks", day: 60, minutes: 60 },
+      { id: "r3", kind: "review", title: "Month 3 review: final report and demo", detail: "10 marks", day: 90, minutes: 60 },
+      viva("Prepare for the final viva voce")
+    ];
+    const ORAL_EXAM = "Prepare for the oral and practical exam";
+    const SUBMISSIONS = {
+      best101: [miniProject("Tutorial mini project or quiz"), termWork("At least 10 tutorials")],
+      besl101: [miniProject("Physics lab mini project"), termWork("At least 7–8 practicals")],
+      besl102: [termWork("At least 8–10 practicals")],
+      besl103: [...assignments(), termWork("At least 10–12 practicals and 2 assignments"), viva(ORAL_EXAM)],
+      bescl104: nirmanWork(),
+      vsec101: [termWork("At least 10–12 practicals"), viva(ORAL_EXAM)],
+      ael101: [termWork("At least 8–10 activities"), viva(ORAL_EXAM)],
+      best201: [miniProject("Tutorial mini project or quiz"), termWork("At least 10 tutorials")],
+      besl202: [...assignments(), termWork("At least 10–12 practicals and 2 assignments"), viva(ORAL_EXAM)],
+      besl203: [...assignments(), termWork("At least 10–12 practicals and 2 assignments")],
+      besl204: [...assignments(), termWork("At least 10–12 practicals and 2 assignments"), viva(ORAL_EXAM)],
+      besl205: nirmanWork(),
+      pcl201: [...assignments(), termWork("At least 10–12 practicals and 2 assignments"), viva(ORAL_EXAM)],
+      vsec201: [termWork("At least 10–12 practicals")],
+      cc201: [...assignments(), termWork("At least 8–10 activities and 2 assignments")],
+      iks201: [...assignments(), termWork("At least 10–12 practicals and 2 assignments")]
+    };
+
+    const SEMESTERS = [
+      {
+        id: "s1", title: "Semester I",
+        courses: [
+          { id: "besc101", code: "BESC101", short: "Maths I", name: "Computational Engineering Mathematics - I", emoji: "\u{1F4D0}", color: "blue", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Matrices", 5], ["Complex Numbers", 4], ["Hyperbolic Functions & Logarithms of Complex Numbers", 4], ["Partial Differentiation", 5], ["Applications of Partial Differentiation & Successive Differentiation", 4], ["Numerical Methods", 5]] },
+          { id: "besc102", code: "BESC102", short: "BEEE", name: "Basic Electrical & Electronics Engineering", emoji: "\u{26A1}", color: "green", type: "theory", sl: 45, credits: 3, marks: "IAT 40 + ESE 60", items: [["DC Circuits", 8], ["AC Circuits", 8], ["Single Phase Transformer", 4], ["Electrical Machines", 4], ["Fundamentals of Digital Systems", 4], ["Electrical Energy Storage", 2]] },
+          { id: "besc103", code: "BESC103", short: "Physics", name: "Applied Physics for Computer Technology", emoji: "\u{1F52C}", color: "orange", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Quantum Physics", 5], ["Semiconductor Devices", 5], ["Laser and Fiber Optics", 5], ["Acoustics and Ultrasonics", 5], ["Electromagnetism and Sensors", 5], ["Advanced Materials and Nanotechnology", 5]] },
+          { id: "besc104", code: "BESC104", short: "C", name: "Programming for Problem Solving Using C", emoji: "\u{1F4BB}", color: "purple", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Computational Thinking and C Fundamentals", 4], ["Decision Making and Iterative Problem Solving", 6], ["Arrays and Strings", 6], ["Modular Programming with Functions", 6], ["Pointers and Structures", 5], ["File Handling", 3]] },
+          { id: "besc105", code: "BESC105", short: "Ethics", name: "Social Innovation and Engineering Ethics", emoji: "\u{1F331}", color: "pink", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Social Innovation, Society and Engineering Responsibility", 10], ["Fundamentals of Engineering Ethics", 10], ["Community Study, NGO Linkage and Real-Time Problem Identification", 10], ["Sustainable Social Innovation and Practices", 10], ["Engineering Ethics, Responsible Technology and AI Ethics", 10], ["Community-Based Social Innovation Project", 10]] },
+          { id: "best101", code: "BEST101", short: "Maths I Tut", name: "Computational Engineering Mathematics - I Tutorial", emoji: "\u{270F}\u{FE0F}", color: "blue", type: "tutorial", credits: 1, marks: "Term Work 25", items: ["Matrices", "Complex Numbers", "Hyperbolic Functions & Logarithms of Complex Numbers", "Partial Differentiation", "Applications of Partial Differentiation and Successive Differentiation", "Numerical Methods"] },
+          { id: "besl101", code: "BESL101", short: "Physics Lab", name: "Applied Physics Lab", emoji: "\u{1F9EA}", color: "orange", type: "lab", credits: 1, marks: "Term Work 25", items: ["Divergence of a laser beam (He-Ne laser)", "Numerical aperture of an optical fibre", "Planck's constant 'h' using a photocell", "Energy band gap of a semiconductor", "Ultrasonic distance meter / interferometer", "Carrier concentration using the Hall effect", "Forward characteristics of Si and Ge diodes", "Characteristics of a Zener diode", "Working principle of an RTD (PT100)", "Group mini project on the course content"] },
+          { id: "besl102", code: "BESL102", short: "BEEE Lab", name: "Basic Electrical & Electronics Engineering Lab", emoji: "\u{1F50C}", color: "green", type: "lab", credits: 1, marks: "Term Work 25", items: ["Safety and measuring instruments (multimeter, oscilloscope)", "Verify the Superposition theorem", "Verify Thevenin's theorem", "Resistance and inductance of a coil (voltmeter method)", "Phase and line values in a three-phase star connection", "Cut-out section of a single-phase transformer", "Cut-out section of a DC machine", "Logic gates and universal NAND / NOR gates", "Charge and discharge of a lead-acid battery", "Mini project on the semester theme"] },
+          { id: "besl103", code: "BESL103", short: "C Lab", name: "Programming for Problem Solving Using C Lab", emoji: "\u{2328}\u{FE0F}", color: "purple", type: "lab", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Smart electricity bill calculator and future value", "Volume of a sphere", "Student performance analyzer", "ATM simulation system", "Sales data analytics", "Pattern generator", "Smart matrix calculator", "Secure password validation", "Text analytics utility", "Banking interest and EMI estimator", "Hospital patient monitoring utility", "Loan eligibility assessment system", "Employee record management", "Swap two numbers using pointers", "File copy utility"] },
+          { id: "bescl104", code: "BESCL104", short: "Nirman I", name: "Nirman Lab - I", emoji: "\u{1F6E0}\u{FE0F}", color: "pink", type: "project", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Choose one of the six problem statements", "Apply this semester's subjects to the problem", "Update the project logbook for your mentor", "Build and demonstrate the working model", "Prepare for the rubric-based assessment"] },
+          { id: "vsec101", code: "VSEC101", short: "Workshop I", name: "Workshop I (InnoTech Workshop)", emoji: "\u{1F527}", color: "green", type: "skill", credits: 2, marks: "Term Work 25 + Oral 25", items: ["Hardware", "Software", "Electrical House Wiring", "Computer Networking", "Digital Tools & Productivity for Engineers", "3D Printing"] },
+          { id: "ael101", code: "AEL101", short: "Comm Skills", name: "Professional Communication Skills for Engineers in the Age of AI", emoji: "\u{1F5E3}\u{FE0F}", color: "orange", type: "skill", credits: 2, marks: "Term Work 25 + Oral 25", items: ["Fundamentals of Communication", "Verbal Aptitude and Language Proficiency", "Listening and Speaking Skills", "Reading Comprehension and Summarization", "Professional Correspondence", "Technical Writing"] }
+        ]
+      },
+      {
+        id: "s2", title: "Semester II",
+        courses: [
+          { id: "besc201", code: "BESC201", short: "Maths II", name: "Computational Engineering Mathematics - II", emoji: "\u{1F4CA}", color: "blue", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Multiple Integration - I", 4], ["Multiple Integration - II", 5], ["Vector Calculus", 4], ["Numerical Solution of ODEs and Numerical Integration", 5], ["Linear Programming Problems", 5], ["Non Linear Programming Problems", 5]] },
+          { id: "besc202", code: "BESC202", short: "Data Structures", name: "Data Structure for Engineering Science", emoji: "\u{1F5C2}\u{FE0F}", color: "green", type: "theory", sl: 45, credits: 3, marks: "IAT 40 + ESE 60", items: [["Introduction to Data Structures", 6], ["Stacks", 7], ["Queues", 6], ["Linked Lists and Dynamic Data Management", 7], ["Trees and Hierarchical Data", 10], ["Graphs and Searching Techniques", 9]] },
+          { id: "besc203", code: "BESC203", short: "Mechanics", name: "Engineering Mechanics & Graphics", emoji: "\u{1F4CF}", color: "orange", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["System of Forces and Equilibrium", 7], ["Kinetics of Particles and Friction", 5], ["Introduction to Robot Kinematics", 2], ["Projections of Points, Lines and Planes", 5], ["Orthographic Projections", 6], ["Isometric Views", 4]] },
+          { id: "besc204", code: "BESC204", short: "Networks", name: "Foundation of Network Science", emoji: "\u{1F310}", color: "purple", type: "theory", sl: 45, credits: 3, marks: "IAT 40 + ESE 60", items: [["Fundamentals of Smart Networking and OSI Architecture", 6], ["Physical and Data Link Layer Technologies", 9], ["Network Layer and Intelligent Internet Routing", 9], ["Transport and Session Layer Services", 7], ["Presentation and Application Layer Services", 7], ["IoT, AI, Cybersecurity and Sustainable Networking", 7]] },
+          { id: "pcc201", code: "PCC201", short: "Web Tech", name: "Web Technology", emoji: "\u{1F578}\u{FE0F}", color: "pink", type: "theory", sl: 30, credits: 2, marks: "IAT 40 + ESE 60", items: [["Introduction to Web Technology", 5], ["HTML5 Fundamentals", 5], ["CSS3 and Responsive Design", 5], ["JavaScript Fundamentals", 5], ["Web Hosting and Security", 5], ["Modern Web Technologies", 5]] },
+          { id: "best201", code: "BEST201", short: "Maths II Tut", name: "Computational Engineering Mathematics - II Tutorial", emoji: "\u{270F}\u{FE0F}", color: "blue", type: "tutorial", credits: 1, marks: "Term Work 25", items: ["Multiple Integration - I", "Multiple Integration - II", "Vector Calculus", "Numerical Solution of ODEs and Numerical Integration", "Linear Programming Problems", "Non-Linear Programming Problems"] },
+          { id: "besl202", code: "BESL202", short: "DS Lab", name: "Data Structure Lab", emoji: "\u{1F9EE}", color: "green", type: "lab", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Insert and delete at a position in an array", "Student marks analysis with a 1D array", "Electricity usage analysis with a 1D array", "Menu-driven stack: push, pop, peek, display", "Recursion: factorial / Fibonacci", "Reverse a string using a stack", "Infix to postfix conversion", "Linear queue using arrays", "Priority queue for emergency patients", "Circular queue for smart traffic signals", "Deque for browser navigation", "Singly linked list: music playlist", "Doubly linked list: employee records", "Binary search tree and tree traversals", "BFS / DFS on a city graph", "Password storage using hashing"] },
+          { id: "besl203", code: "BESL203", short: "Graphics Lab", name: "Engineering Design Graphics Lab", emoji: "\u{1F4D0}", color: "orange", type: "lab", credits: 1, marks: "Term Work 25", items: ["Polygon law of coplanar forces", "Principle of moments (bell crank lever)", "Support reactions of a simply supported beam", "Coefficient of friction on an inclined plane", "Projection of lines (drawing sheet)", "Projection of planes (drawing sheet)", "Orthographic and sectional views (drafting software)", "Isometric projections (drafting software)"] },
+          { id: "besl204", code: "BESL204", short: "Network Lab", name: "Network Science Lab", emoji: "\u{1F4E1}", color: "purple", type: "lab", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Basic networking commands (ping, traceroute, netstat)", "Set up a network simulator (NS-2 / Packet Tracer)", "Stop-and-Wait and Sliding Window protocols", "IP addressing with subnetting", "Packet analysis with Wireshark", "Star, bus and ring topologies", "Design a simple LAN", "File, DHCP or DNS server", "Socket programming with TCP / UDP", "Wireless networking and Wi-Fi setup", "Static routing in a small network", "Smart IoT devices with sensors", "Smart home automation simulation", "Firewall and basic network security", "Green networking case study"] },
+          { id: "besl205", code: "BESL205", short: "Nirman II", name: "Nirman Lab - II", emoji: "\u{1F6E0}\u{FE0F}", color: "pink", type: "project", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Choose one of the six problem statements", "Apply this semester's subjects to the problem", "Update the project logbook for your mentor", "Build and demonstrate the working model", "Prepare for the rubric-based assessment"] },
+          { id: "pcl201", code: "PCL201", short: "Web Lab", name: "Web Technology Lab", emoji: "\u{1F4C4}", color: "pink", type: "lab", credits: 1, marks: "Term Work 25 + Oral 25", items: ["Internet and web architecture", "Analyse Digital India portals (UMANG, MyGov)", "Personal profile page in HTML5", "Animated login form with CSS", "Responsive business landing page", "CSS Grid image gallery", "JavaScript calculator", "Form validation and a to-do list app", "Dynamic complaint registration system", "Deploy a site on GitHub Pages / Netlify", "Mini website for a business or portfolio", "Seminar on an emerging web technology"] },
+          { id: "vsec201", code: "VSEC201", short: "FAB Lab", name: "Workshop II (FAB Lab)", emoji: "\u{1F527}", color: "green", type: "skill", credits: 2, marks: "Term Work 50", items: ["Discrete Components and Testing", "Circuit Making and Testing on Breadboard", "Schematic Software - KiCad / EasyEDA", "PCB Fabrication", "Soldering, Testing and Debugging", "Arduino / Raspberry Pi (Demo) and Drones"] },
+          { id: "cc201", code: "CC201", short: "NSS / Yoga", name: "NSS & Civil Defense / Yoga for Adolescents", emoji: "\u{1F9D8}", color: "blue", type: "skill", credits: 2, marks: "Term Work 25", options: {
+            a: { label: "NSS & Civil Defense", items: ["NSS Orientation and Community Service", "Activity & Awareness Based Programs", "Area Based Projects", "NCC Orientation and National Integration", "Introduction to Civil Defense and Disaster Management", "Basics of Fire Safety and First Aid"] },
+            b: { label: "Yoga for Adolescents", items: ["Introduction to Yoga and Its Philosophy", "Different Paths of Yoga", "Yoga Vāsiṣṭha and Mind: Adolescent Perspective", "Vṛttis, Kleśas, Saṁskāras and Academic Performance", "Haṭha Yoga Practices for Adolescents", "Pañca Kośa Framework and Integrated Yoga Practice"] }
+          } },
+          { id: "iks201", code: "IKS201", short: "IKS", name: "Indian Wisdom for Modern Challenges", emoji: "\u{1F4DC}", color: "orange", type: "skill", credits: 2, marks: "Term Work 25", items: ["Foundations of Indian Knowledge Systems", "Indian Arts, Culture, Architecture and Scientific Heritage", "Vedic Mathematics & Astronomy", "Health, Ayurveda & Holistic Health", "Leadership, Ethics & Good Governance", "Sustainable Practices and Indigenous Technologies (Mini Project)"] }
+        ]
+      }
+    ];
+
+    // Exam dates are not in the syllabus, so they stay flagged as placeholders until saved.
+    // Semester I started on 22 Aug 2026; the Semester II start is an estimate.
+    const DEFAULT_DATES = {
+      s1: { semStart: "2026-08-22", start: "", iat1: "", iat2: "", ese: "2026-12-21" },
+      s2: { semStart: "2027-01-11", start: "2027-01-11", iat1: "", iat2: "", ese: "2027-05-17" }
+    };
+    const DEFAULT_HOURS = [3, 3, 3, 3, 3, 4, 4]; // Monday first
+    const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const EFFORT = { tutorial: 45, lab: 30, project: 60, skill: 30 };
+    const KIND_LABELS = { theory: "Study", tutorial: "Tutorial", lab: "Lab write-up", project: "Project", skill: "Module work", assignment: "Assignment", mini: "Mini project / quiz", submission: "Term work", viva: "Viva prep", review: "Nirman review", revise: "Revision", iat: "IAT revision", custom: "My task" };
+    const SUBMISSION_KINDS = new Set(["assignment", "mini", "submission", "viva", "review"]);
+    const TEACHING_WEEKS = 15; // 30 lecture hours at 2 a week in the syllabus
+    const PLAN_VERSION = 3;
+    const REVISE_MINUTES = 30;
+    const IAT_MINUTES = 45;
+    const SESSION_MINUTES = 60;
+    const FIT_SLACK = 10;
+    const EXAM_BUFFER_DAYS = 3;
+    const IATS = [
+      { field: "iat1", label: "IAT-I", range: "M1–M3" },
+      { field: "iat2", label: "IAT-II", range: "M4–M6" }
+    ];
+
+    // Numbered topics from each theory module's "Detailed Content" in the syllabus, shortened into tasks.
+    // An empty list means the syllabus treats that module as a single topic.
+    const SUBMODULES = {
+      besc101: [
+        ["Hermitian, skew-Hermitian, unitary and orthogonal matrices", "Rank using echelon, normal and PAQ forms", "Homogeneous and non-homogeneous systems: consistency and solutions"],
+        ["De Moivre's theorem", "Expansion of sin^nθ, cos^nθ, sin nθ and cos nθ", "Powers and roots of a complex number"],
+        ["Circular and hyperbolic functions of complex numbers", "Inverse functions; separating real and imaginary parts", "Logarithm of a complex number"],
+        ["Partial derivatives of first and higher order", "Differentiation of composite functions", "Euler's theorem on homogeneous functions and deductions"],
+        ["Maxima and minima of a function of two variables", "Successive differentiation: nth derivatives and Leibnitz's theorem"],
+        ["Transcendental equations: Newton-Raphson and Regula-Falsi", "Linear systems: Gauss-Jacobi and Gauss-Seidel iteration"]
+      ],
+      besc102: [
+        ["Kirchhoff's laws, sources, source transformation, mesh analysis, star-delta", "Superposition, Thevenin's, Norton's and maximum power transfer theorems"],
+        ["Generation of AC, average and RMS values", "Phasors; single-phase series and parallel R, L, C circuits; power", "Three-phase voltages; star and delta connections"],
+        [], [], [], []
+      ],
+      besc103: [
+        ["Wave-particle duality and de Broglie's matter waves", "Heisenberg's uncertainty principle", "Photoelectric effect and numericals", "Quantum computing: qubits and quantum gates", "Quantum circuits, entanglement and Bell states"],
+        ["Energy bands in solids", "Fermi level", "PN junction diode", "LED, solar cell and Zener diode", "Light sensors: LDR, photodiode and phototransistor"],
+        ["Quantum processes in lasers", "Characteristics and applications of lasers", "Optical fibre principles: total internal reflection", "Optical fibre parameters: acceptance angle and numerical aperture", "Applications of optical fibre"],
+        ["Fundamentals of acoustics", "Sound interference and Doppler effect, with numericals", "Architectural acoustics: reverberation and Sabine's formula", "Generating ultrasonics: magnetostriction and piezoelectric", "Applications of ultrasonics"],
+        ["Gauss's, Faraday's and Ampere's laws; Maxwell's equations", "Hall effect: derivation and numericals", "Dia-, para- and ferromagnetic materials", "Sensors and transducers; PT100", "Piezoelectric sensors and applications"],
+        ["Nanomaterials: types and properties", "Carbon nanotubes", "Smart materials and shape memory alloys", "Superconductivity and Meissner effect", "Supercapacitors"]
+      ],
+      besc104: [
+        ["Problem solving, algorithms, flowcharts and pseudocode", "C fundamentals: tokens, data types, operators, input-output"],
+        ["Conditional statements", "Iterative statements, jump statements and menu-driven programs"],
+        ["Arrays: 1D, 2D and matrix operations", "Strings and string.h functions"],
+        ["Functions, call by value and reference, recursion", "Storage classes"],
+        ["Pointers: arithmetic, pointer to pointer, dynamic memory", "Structures, unions and typedef"],
+        []
+      ],
+      besc105: [
+        ["Meaning and importance of social innovation", "Role of engineers in social development", "Society, technology and innovation", "Human needs and community behaviour", "Technology as a tool for social change", "Inclusive, people-centred innovation", "Local, rural and urban community issues", "Engineering solutions for everyday problems", "Social responsibility of engineers"],
+        ["Ethics, morals and values", "Personal vs professional ethics", "Engineering ethics", "Duties of engineers towards society", "Safety, welfare and public interest", "Honesty and accountability", "Conflict of interest", "Ethical decision-making process", "Case studies of engineering failures", "Whistleblowing and professional responsibility"],
+        ["Community and stakeholders", "NGO and community linkage", "Types of NGOs and social organisations", "Field observation and community interaction", "Interviews and basic data collection", "Stakeholder mapping", "Root cause analysis", "Problem prioritisation", "Documenting field findings", "Ethical behaviour during community interaction"],
+        ["Sustainable development", "Sustainable Development Goals", "Environment, health, safety and society", "Cleanliness, hygiene and public health", "Waste management and segregation", "E-waste management", "Water conservation", "Energy conservation", "Green campus and eco-friendly practices", "Community safety and disaster awareness", "Waste to wealth", "Best out of waste as a social innovation model"],
+        ["Responsible use of technology and AI", "Data privacy", "Ethical considerations in engineering projects"],
+        ["Selecting a real-time community problem", "NGO or community partner identification", "Field survey and stakeholder interaction", "Problem statement writing", "Root cause analysis", "Solution design", "Prototype, product, model or awareness tool", "Start-up or social enterprise possibility", "Cost and resource analysis", "Social and environmental impact analysis", "Ethical considerations", "Reflection and future scope", "Project documentation"]
+      ],
+      besc201: [
+        ["Basics of integration; double integration", "Evaluating double integrals by changing to polar form"],
+        ["Double integration to compute area", "Triple integration and its evaluation"],
+        ["Gradient, divergence, curl; solenoidal and irrotational fields; line integrals", "Green's theorem and Stokes' theorem"],
+        ["Numerical solution of ODEs: Euler, modified Euler, Runge-Kutta", "Numerical integration: Trapezoidal and Simpson's rules"],
+        ["Types of solutions; standard and canonical form", "Simplex method", "Duality and dual simplex method"],
+        ["NLPP with one equality constraint: Lagrange's multipliers", "NLPP with one inequality constraint: Kuhn-Tucker conditions"]
+      ],
+      besc202: [
+        ["Types of data structures", "Operations on data structures and ADT"],
+        ["Stack ADT, operations, array implementation, recursion", "Parenthesis checking, infix to postfix, postfix evaluation"],
+        ["Queue ADT, operations, array implementation", "Circular queue, priority queue and deque"],
+        ["Linked lists: representation and comparison with arrays", "Singly, circular and doubly linked lists", "Stack and queue using linked lists"],
+        ["Trees: terminology and binary trees", "Binary tree types, traversals and binary search tree", "AVL, B and B+ trees; expression trees; Huffman encoding"],
+        ["Graphs: terminology and representation", "DFS, BFS, linear and binary search", "Hashing, hash functions, linear probing and chaining"]
+      ],
+      besc203: [
+        ["Force systems and equilibrium: resultants, moments, couples, free body diagrams", "Equilibrium of beams: supports and reactions"],
+        ["Force and acceleration: D'Alembert's principle", "Laws of friction, angle of repose, inclined planes"],
+        [],
+        ["Projections of points", "Projections of lines", "Projections of planes"],
+        ["Orthographic projections", "Sectional orthographic projections"],
+        []
+      ],
+      besc204: [
+        ["Computer networks: types, topologies, OSI and TCP/IP", "Data communication and modes of communication", "Network devices", "BharatNet and Digital India"],
+        ["Guided and unguided transmission media", "Data link design issues: framing, error and flow control", "Checksum, CRC and Hamming code", "Stop-and-wait, Go-Back-N and Selective Repeat", "Wireless LAN and green communication"],
+        ["Network layer services; unicast, multicast, broadcast", "IPv4, IPv6, subnetting and supernetting", "Routing algorithms; ARP, RARP, ICMP, IGMP", "Congestion control, QoS, token and leaky bucket", "NAT and software defined networking"],
+        ["Transport layer services, port numbers and sockets", "TCP, UDP, flow and congestion control", "Session establishment, synchronisation and dialog control", "Smart banking communication sessions"],
+        ["Presentation layer: data representation, encryption, compression", "DNS, HTTP/HTTPS, FTP, SMTP, POP, IMAP", "Cloud networking and CDN"],
+        ["IoT, sensors, edge and fog computing", "Network security, firewalls, IDS, VPN, cyber ethics", "Green computing and sustainable networking"]
+      ],
+      pcc201: [
+        [],
+        ["HTML document structure", "Formatting tags", "Lists", "Tables", "Hyperlinks", "Images", "Forms", "Semantic tags", "Audio and video"],
+        ["CSS syntax", "Selectors", "Colours", "Backgrounds", "Borders", "Box model", "Fonts", "Flexbox", "Media queries", "Responsive web design", "Introduction to Bootstrap"],
+        ["Introduction to JavaScript", "Variables, data types and operators", "Conditional statements", "Loops", "Functions", "Arrays", "Events", "DOM manipulation", "Form validation"],
+        ["Website hosting concepts", "Domain registration", "FTP basics", "Deployment process", "Cookies and sessions", "Introduction to web security", "Common web vulnerabilities"],
+        ["Introduction to APIs", "Cloud-based web applications", "Progressive Web Apps", "Web accessibility standards", "Introduction to front-end frameworks"]
+      ]
+    };
+
+    const COURSES = {};
+    SEMESTERS.forEach(sem => sem.courses.forEach(course => { COURSES[course.id] = course; }));
+
+    const CHECKLIST_KEY = "aids-fy-syllabus-checklist-v1";
+    const PLAN_KEY = "aids-fy-planner-v1";
+    const SEM_KEY = "aids-fy-syllabus-selected-sem";
+    const TAB_KEY = "aids-fy-planner-tab";
+    const TRACKER_KEY = "aids-fy-planner-table";
+
+    /* Dates are local "YYYY-MM-DD" strings throughout, so they never shift across time zones. */
+    const pad = n => String(n).padStart(2, "0");
+    const toIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const parseIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+    const todayIso = () => toIso(new Date());
+    const addDays = (s, n) => { const d = parseIso(s); d.setDate(d.getDate() + n); return toIso(d); };
+    const dayIndex = s => (parseIso(s).getDay() + 6) % 7;
+    const mondayOf = s => addDays(s, -dayIndex(s));
+    const daysBetween = (a, b) => Math.round((parseIso(b) - parseIso(a)) / 86400000);
+    const isIso = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && toIso(parseIso(s)) === s;
+    const fmtDate = (s, withYear) => parseIso(s).toLocaleDateString("en-IN", withYear
+      ? { weekday: "short", day: "numeric", month: "short", year: "numeric" }
+      : { weekday: "short", day: "numeric", month: "short" });
+    const fmtMinutes = m => {
+      const hours = Math.floor(m / 60), minutes = Math.round(m % 60);
+      if (!hours) return `${minutes}m`;
+      return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+    };
+    const pct = (done, total) => total ? Math.round((done / total) * 100) : 0;
+    const round5 = m => Math.max(5, Math.round(m / 5) * 5);
+    const sum = (list, fn) => list.reduce((total, x) => total + fn(x), 0);
+
+    function el(tag, attrs, children) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs || {})) {
+        if (k === "text") node.textContent = v;
+        else if (v !== false && v !== null && v !== undefined) node.setAttribute(k, v === true ? "" : v);
+      }
+      (children || []).forEach(c => { if (c) node.appendChild(c); });
+      return node;
+    }
+
+    /* ---------- Saved data ---------- */
+
+    function defaultSem(semId) {
+      return { settings: { ...DEFAULT_DATES[semId], hours: [...DEFAULT_HOURS], pace: 60, confirmed: false }, tasks: [], built: false, version: 0 };
+    }
+
+    // Used for both localStorage and restored backups, so nothing unexpected reaches the page.
+    function cleanState(raw) {
+      const source = raw && typeof raw === "object" ? raw : {};
+      const clean = {
+        seq: Number.isFinite(source.seq) ? source.seq : 0,
+        items: {},
+        due: {},
+        activity: source.activity === "b" ? "b" : "a",
+        tickSig: typeof source.tickSig === "string" ? source.tickSig : "",
+        sems: {}
+      };
+      if (source.items && typeof source.items === "object") {
+        for (const [key, value] of Object.entries(source.items)) if (value === true) clean.items[key] = true;
+      }
+      if (source.due && typeof source.due === "object") {
+        for (const [key, value] of Object.entries(source.due)) if (isIso(value)) clean.due[key] = value;
+      }
+      SEMESTERS.forEach(sem => {
+        const saved = source.sems && source.sems[sem.id];
+        const out = defaultSem(sem.id);
+        if (saved && typeof saved === "object") {
+          const s = saved.settings || {};
+          ["start", "iat1", "iat2"].forEach(f => { if (s[f] === "" || isIso(s[f])) out.settings[f] = s[f]; });
+          if (isIso(s.ese)) out.settings.ese = s.ese;
+          if (isIso(s.semStart)) out.settings.semStart = s.semStart;
+          if (Array.isArray(s.hours) && s.hours.length === 7) out.settings.hours = s.hours.map(h => clampHours(h));
+          if ([40, 60, 80, 100].includes(s.pace)) out.settings.pace = s.pace;
+          out.settings.confirmed = s.confirmed === true;
+          out.built = saved.built === true;
+          out.version = Number(saved.version) || 0;
+          if (Array.isArray(saved.tasks)) {
+            out.tasks = saved.tasks.map(cleanTask).filter(Boolean);
+            out.tasks.forEach(t => { const n = Number(t.id.slice(1)); if (n > clean.seq) clean.seq = n; });
+          }
+        }
+        clean.sems[sem.id] = out;
+      });
+      return clean;
+    }
+
+    function cleanTask(t) {
+      if (!t || typeof t !== "object" || typeof t.id !== "string" || !/^t\d+$/.test(t.id)) return null;
+      if (!KIND_LABELS[t.kind] || typeof t.title !== "string" || !t.title) return null;
+      return {
+        id: t.id,
+        kind: t.kind,
+        course: COURSES[t.course] ? t.course : "",
+        key: typeof t.key === "string" ? t.key : null,
+        item: typeof t.item === "string" ? t.item : "",
+        title: t.title.slice(0, 160),
+        minutes: Math.min(600, Math.max(5, Number(t.minutes) || 30)),
+        date: isIso(t.date) ? t.date : null,
+        part: Number(t.part) || 1,
+        parts: Number(t.parts) || 1,
+        done: t.done === true,
+        doneOn: isIso(t.doneOn) ? t.doneOn : null,
+        pinned: t.pinned === true
+      };
+    }
+
+    function clampHours(h) {
+      const n = Number(h);
+      return Number.isFinite(n) ? Math.min(16, Math.max(0, n)) : 0;
+    }
+
+    function readJson(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    }
+    function readChecklist() {
+      const saved = readJson(CHECKLIST_KEY);
+      return saved && typeof saved === "object" ? saved : {};
+    }
+
+    let state = cleanState(readJson(PLAN_KEY));
+    let checklist = readChecklist();
+    let saveFailed = false;
+
+    function save() {
+      try { localStorage.setItem(PLAN_KEY, JSON.stringify(state)); saveFailed = false; }
+      catch (e) { saveFailed = true; }
+    }
+
+    /* ---------- Courses and their tracked items ---------- */
+
+    function subItems(courseId, index, moduleKey) {
+      const titles = (SUBMODULES[courseId] || [])[index] || [];
+      return titles.map((title, n) => ({ key: `${moduleKey}-s${n + 1}`, title, label: `${index + 1}.${n + 1}` }));
+    }
+
+    function itemsOf(course) {
+      if (course.options) {
+        return course.options[state.activity].items.map((title, i) => ({ key: `${course.id}-${state.activity}${i + 1}`, title, label: `M${i + 1}` }));
+      }
+      return course.items.map((entry, i) => {
+        if (course.type === "theory") return { key: `${course.id}-m${i + 1}`, title: entry[0], hours: entry[1], label: `M${i + 1}`, subs: subItems(course.id, i, `${course.id}-m${i + 1}`) };
+        return { key: `${course.id}-i${i + 1}`, title: entry, label: course.type === "lab" ? `E${i + 1}` : course.type === "project" ? `S${i + 1}` : `M${i + 1}` };
+      });
+    }
+
+    const submissionsOf = course => (SUBMISSIONS[course.id] || []).map(work => ({ ...work, key: `${course.id}-d-${work.id}`, label: "" }));
+
+    // Theory module ticks live in the checklist's own store, so both pages always agree.
+    const SHARED_KEYS = new Set();
+    const SUB_PARENT = {};
+    const SUBS_OF = {};
+    SEMESTERS.forEach(sem => sem.courses.filter(c => c.type === "theory").forEach(c => itemsOf(c).forEach(i => {
+      SHARED_KEYS.add(i.key);
+      if (i.subs.length) SUBS_OF[i.key] = i.subs.map(sub => sub.key);
+      i.subs.forEach(sub => { SUB_PARENT[sub.key] = i.key; });
+    })));
+
+    // A ticked module counts all its sub-modules as done, so the checklist page stays the single source for modules.
+    const isItemDone = key => {
+      if (key.startsWith("rev:") && SUB_PARENT[key.slice(4)]) return !!state.items[key] || !!state.items[`rev:${SUB_PARENT[key.slice(4)]}`];
+      if (SUB_PARENT[key]) return !!checklist[SUB_PARENT[key]] || !!state.items[key];
+      return SHARED_KEYS.has(key) ? !!checklist[key] : !!state.items[key];
+    };
+    const tickSignature = () => [...SHARED_KEYS].filter(key => checklist[key]).join();
+
+    function writeChecklist(key, value) {
+      checklist = readChecklist();
+      if (value) checklist[key] = true; else delete checklist[key];
+      try { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist)); } catch (e) { saveFailed = true; }
+      state.tickSig = tickSignature();
+    }
+
+    // Revision follows the same rule as study: all sub-modules revised means the module is revised.
+    function setRevised(key, value) {
+      const base = key.slice(4);
+      const parent = SUB_PARENT[base];
+      if (parent) {
+        const parentKey = `rev:${parent}`;
+        const siblings = SUBS_OF[parent].map(k => `rev:${k}`);
+        if (value) {
+          state.items[key] = true;
+          if (siblings.every(k => state.items[k])) {
+            siblings.forEach(k => delete state.items[k]);
+            state.items[parentKey] = true;
+          }
+        } else {
+          if (state.items[parentKey]) {
+            delete state.items[parentKey];
+            siblings.forEach(k => { state.items[k] = true; });
+          }
+          delete state.items[key];
+        }
+        return;
+      }
+      (SUBS_OF[base] || []).forEach(k => delete state.items[`rev:${k}`]);
+      if (value) state.items[key] = true; else delete state.items[key];
+    }
+
+    function setItemDone(key, value) {
+      if (key.startsWith("rev:")) { setRevised(key, value); return; }
+      const parent = SUB_PARENT[key];
+      if (parent) {
+        const siblings = SUBS_OF[parent];
+        if (value) {
+          state.items[key] = true;
+          if (siblings.every(k => state.items[k])) {
+            siblings.forEach(k => delete state.items[k]);
+            writeChecklist(parent, true);
+          }
+        } else {
+          if (checklist[parent]) {
+            writeChecklist(parent, false);
+            siblings.forEach(k => { state.items[k] = true; });
+          }
+          delete state.items[key];
+        }
+      } else if (SHARED_KEYS.has(key)) {
+        (SUBS_OF[key] || []).forEach(k => delete state.items[k]);
+        writeChecklist(key, value);
+      } else if (value) {
+        state.items[key] = true;
+      } else {
+        delete state.items[key];
+      }
+    }
+
+    // Plans from before sub-modules hold module-level study sessions: finished time ticks the
+    // earliest sub-modules, and those sessions stay in the study log.
+    function upgradePlans() {
+      SEMESTERS.forEach(sem => {
+        const plan = state.sems[sem.id];
+        if (plan.version >= PLAN_VERSION) return;
+        Object.keys(SUBS_OF).forEach(moduleKey => {
+          const old = plan.tasks.filter(t => t.key === moduleKey);
+          if (!old.length) return;
+          const total = sum(old, t => t.minutes);
+          const finished = sum(old.filter(t => t.done && t.doneOn), t => t.minutes);
+          if (!checklist[moduleKey]) {
+            const count = Math.floor(finished / total * SUBS_OF[moduleKey].length);
+            SUBS_OF[moduleKey].slice(0, count).forEach(k => { state.items[k] = true; });
+          }
+          plan.tasks = plan.tasks.filter(t => t.key !== moduleKey || (t.done && t.doneOn));
+          plan.tasks.forEach(t => { if (t.key === moduleKey) t.key = null; });
+        });
+        rebuild(sem.id);
+      });
+    }
+
+    // Keeps tasks in step with ticks made on the Subjects tab or the checklist page.
+    function reconcile() {
+      SEMESTERS.forEach(sem => {
+        const byKey = {};
+        state.sems[sem.id].tasks.forEach(t => { if (t.key) (byKey[t.key] = byKey[t.key] || []).push(t); });
+        Object.entries(byKey).forEach(([key, tasks]) => {
+          if (isItemDone(key)) {
+            tasks.forEach(t => { t.done = true; });
+          } else if (tasks.every(t => t.done)) {
+            const last = tasks.reduce((a, b) => (b.part >= a.part ? b : a));
+            last.done = false;
+            last.doneOn = null;
+          }
+        });
+      });
+    }
+
+    // Ticks made on the checklist page free up time, so they replan like ticks made here.
+    function syncChecklist() {
+      checklist = readChecklist();
+      if (tickSignature() !== state.tickSig) SEMESTERS.forEach(sem => rebuild(sem.id));
+      else reconcile();
+    }
+
+    /* ---------- Due dates ---------- */
+
+    // The teaching term shrinks only if the exams leave too little room for all 15 weeks.
+    function teachingTerm(semId) {
+      const { semStart, ese } = state.sems[semId].settings;
+      const full = TEACHING_WEEKS * 7;
+      const room = daysBetween(semStart, ese) - 7;
+      const span = room >= 14 ? Math.min(full, room) : full;
+      return { start: semStart, span, end: addDays(semStart, span), scale: span / full };
+    }
+
+    const notSunday = date => (dayIndex(date) === 6 ? addDays(date, -1) : date);
+
+    let dueCache = {};
+
+    // Suggested due dates: modules by their share of lecture hours, other items evenly across the term.
+    function suggestedDueDates(semId) {
+      if (dueCache[semId]) return dueCache[semId];
+      const term = teachingTerm(semId);
+      const { ese } = state.sems[semId].settings;
+      const dates = {};
+      SEMESTERS.find(s => s.id === semId).courses.forEach(course => {
+        const items = itemsOf(course);
+        const totalHours = sum(items, i => i.hours || 1);
+        let soFar = 0;
+        items.forEach(item => {
+          const before = soFar;
+          soFar += item.hours || 1;
+          dates[item.key] = notSunday(addDays(term.start, Math.round(term.span * soFar / totalHours)));
+          (item.subs || []).forEach((sub, n) => {
+            const point = before + (soFar - before) * (n + 1) / item.subs.length;
+            dates[sub.key] = notSunday(addDays(term.start, Math.round(term.span * point / totalHours)));
+          });
+          if (course.type === "theory") dates[`rev:${item.key}`] = addDays(ese, -1);
+        });
+        submissionsOf(course).forEach(work => {
+          const offset = work.day !== undefined ? work.day : work.week * 7;
+          const date = addDays(term.start, Math.round(offset * term.scale));
+          const latest = addDays(ese, -1);
+          dates[work.key] = notSunday(date > latest ? latest : date);
+        });
+      });
+      dueCache[semId] = dates;
+      return dates;
+    }
+
+    const dueOf = (semId, key) => state.due[key] || state.due[SUB_PARENT[key]] || suggestedDueDates(semId)[key] || null;
+
+    function dueState(date, done) {
+      if (done || !date) return "";
+      const today = todayIso();
+      if (date < today) return "is-late";
+      return daysBetween(today, date) <= 7 ? "is-soon" : "";
+    }
+
+    function dueLabel(date, done) {
+      if (!date) return "";
+      if (done) return `Due ${fmtDate(date)}`;
+      const days = daysBetween(todayIso(), date);
+      if (days < 0) return `Overdue · was due ${fmtDate(date)}`;
+      if (days === 0) return "Due today";
+      return days === 1 ? "Due tomorrow" : `Due ${fmtDate(date)}`;
+    }
+
+    /* ---------- Scheduling ---------- */
+
+    const capacityOn = (settings, date) => Math.round(settings.hours[dayIndex(date)] * 60);
+
+    function planStart(settings) {
+      const today = todayIso();
+      return settings.start && settings.start > today ? settings.start : today;
+    }
+
+    function newTask(fields) {
+      state.seq += 1;
+      return { id: `t${state.seq}`, course: "", key: null, item: "", date: null, part: 1, parts: 1, done: false, doneOn: null, pinned: false, ...fields };
+    }
+
+    // Spreads remaining work so every subject moves forward together: the next task
+    // always comes from the subject that is proportionally furthest behind.
+    function pack(queues, settings, used, startDay, load) {
+      const horizon = addDays(startDay, 730);
+      let day = startDay;
+      const pending = () => queues.filter(q => q.tasks.length)
+        .sort((a, b) => Number(!!b.first) - Number(!!a.first) || a.placed / a.total - b.placed / b.total);
+      while (queues.some(q => q.tasks.length) && day <= horizon) {
+        const capacity = Math.round(capacityOn(settings, day) * load);
+        const free = capacity - (used[day] || 0);
+        const next = capacity > 0 && pending().find(q => {
+          const minutes = q.tasks[0].minutes;
+          return minutes <= free + FIT_SLACK || (!used[day] && free > 0);
+        });
+        if (!next) { day = addDays(day, 1); continue; }
+        const task = next.tasks.shift();
+        task.date = day;
+        next.placed += task.minutes;
+        used[day] = (used[day] || 0) + task.minutes;
+      }
+      return day;
+    }
+
+    function rebuild(semId) {
+      const sem = SEMESTERS.find(s => s.id === semId);
+      const plan = state.sems[semId];
+      const settings = plan.settings;
+      const today = todayIso();
+      const start = planStart(settings);
+
+      dueCache = {};
+      reconcile();
+      // Sessions closed by ticking their module were never worked on here, so they leave the calendar.
+      const kept = plan.tasks.filter(t => t.kind === "custom" || (t.done && t.doneOn) || (!t.done && t.pinned && t.date && t.date >= today));
+      const used = {};
+      kept.forEach(t => {
+        const counted = t.done ? (t.doneOn === start ? start : null) : t.date;
+        if (counted && counted >= start) used[counted] = (used[counted] || 0) + t.minutes;
+      });
+      const added = [];
+      const theory = sem.courses.filter(c => c.type === "theory");
+
+      IATS.forEach(({ field, label, range }, examIndex) => {
+        const date = settings[field];
+        if (!date || date <= start) return;
+        theory.forEach((course, i) => {
+          const key = `${field}:${course.id}`;
+          if (isItemDone(key) || kept.some(t => t.key === key)) return;
+          const offset = (i % 3) + 1;
+          const slot = addDays(date, -offset) >= start ? addDays(date, -offset) : addDays(date, -1);
+          if (slot < start) return;
+          added.push(newTask({ kind: "iat", course: course.id, key, title: `Revise ${range} for ${label}`, minutes: IAT_MINUTES, date: slot, part: examIndex + 1 }));
+          used[slot] = (used[slot] || 0) + IAT_MINUTES;
+        });
+      });
+
+      // Work with a deadline is booked first, on the latest free day before it is due.
+      // Anything already past due goes to the front of the queue instead.
+      const urgent = [];
+      sem.courses.forEach(course => {
+        submissionsOf(course).forEach(work => {
+          if (isItemDone(work.key)) return;
+          const existing = kept.filter(t => t.key === work.key);
+          let remaining = work.minutes - sum(existing, t => t.minutes);
+          if (remaining <= 0) {
+            if (existing.some(t => !t.done)) return;
+            remaining = 15;
+          }
+          const sessions = Math.ceil(remaining / SESSION_MINUTES);
+          const minutes = round5(remaining / sessions);
+          const due = dueOf(semId, work.key);
+          for (let i = 0; i < sessions; i++) {
+            const task = newTask({ kind: work.kind, course: course.id, key: work.key, title: work.title, minutes });
+            added.push(task);
+            const slot = slotBefore(due, minutes, start, settings, used);
+            if (!slot) { urgent.push(task); continue; }
+            task.date = slot;
+            used[slot] = (used[slot] || 0) + minutes;
+          }
+        });
+      });
+
+      const studyQueues = [];
+      if (urgent.length) studyQueues.push({ tasks: urgent, total: sum(urgent, t => t.minutes), placed: 0, first: true });
+      sem.courses.forEach(course => {
+        const items = itemsOf(course);
+        const hoursTotal = sum(items, i => i.hours || 0);
+        const tasks = [];
+        items.forEach(item => {
+          if (isItemDone(item.key)) return;
+          const planned = course.type === "theory"
+            ? round5(course.sl * 60 * (settings.pace / 100) * item.hours / hoursTotal)
+            : EFFORT[course.type];
+          const parts = item.subs && item.subs.length ? item.subs : [item];
+          parts.forEach(part => {
+            if (isItemDone(part.key)) return;
+            const share = Math.max(15, round5(planned / parts.length));
+            const existing = kept.filter(t => t.key === part.key);
+            let remaining = share - sum(existing, t => t.minutes);
+            if (remaining <= 0) {
+              if (existing.some(t => !t.done)) return;
+              remaining = 15; // Sessions are all done but it isn't ticked yet.
+            }
+            const sessions = Math.ceil(remaining / SESSION_MINUTES);
+            const minutes = round5(remaining / sessions);
+            for (let i = 0; i < sessions; i++) {
+              tasks.push(newTask({ kind: course.type, course: course.id, key: part.key, item: part.label, title: part.title, minutes }));
+            }
+          });
+        });
+        if (tasks.length) studyQueues.push({ tasks, total: sum(tasks, t => t.minutes), placed: 0 });
+      });
+
+      const reviseQueues = [];
+      theory.forEach(course => {
+        const tasks = itemsOf(course)
+          .filter(item => !isItemDone(`rev:${item.key}`) && !kept.some(t => t.key === `rev:${item.key}`))
+          .map(item => newTask({ kind: "revise", course: course.id, key: `rev:${item.key}`, item: item.label, title: item.title, minutes: REVISE_MINUTES }));
+        if (tasks.length) reviseQueues.push({ tasks, total: sum(tasks, t => t.minutes), placed: 0 });
+      });
+
+      const queued = [...studyQueues, ...reviseQueues].flatMap(q => [...q.tasks]);
+      const allNew = queued.filter(t => !added.includes(t));
+
+      // Levels the work across the term, so it ends just before the exams instead of filling
+      // every free hour from today. Below 1 only when there is more time than work.
+      let spare = 0;
+      for (let d = start; d < addDays(settings.ese, -EXAM_BUFFER_DAYS); d = addDays(d, 1)) {
+        spare += Math.max(0, capacityOn(settings, d) - (used[d] || 0));
+      }
+      const load = spare > 0 ? Math.min(1, sum(queued, t => t.minutes) / (spare * 0.95)) : 1;
+
+      const afterStudy = pack(studyQueues, settings, used, start, load);
+      pack(reviseQueues, settings, used, afterStudy, load);
+
+      plan.tasks = [...kept, ...added, ...allNew];
+      numberSessions(plan.tasks);
+      plan.built = true;
+      plan.version = PLAN_VERSION;
+      state.tickSig = tickSignature();
+      save();
+    }
+
+    function slotBefore(due, minutes, start, settings, used) {
+      if (!due || due <= start) return null;
+      let studyDay = null;
+      for (let back = 1; back <= 7; back++) {
+        const day = addDays(due, -back);
+        if (day < start) break;
+        const capacity = capacityOn(settings, day);
+        if (capacity - (used[day] || 0) >= minutes) return capacity > 0 ? day : (studyDay || day);
+        if (capacity > 0 && !studyDay) studyDay = day;
+      }
+      return studyDay || addDays(due, -1);
+    }
+
+    function numberSessions(tasks) {
+      const byKey = {};
+      tasks.forEach(t => { if (t.key && t.kind !== "iat") (byKey[t.key] = byKey[t.key] || []).push(t); });
+      Object.values(byKey).forEach(group => {
+        group.sort((a, b) => Number(b.done) - Number(a.done) || (a.date || "9").localeCompare(b.date || "9"));
+        group.forEach((t, i) => { t.part = i + 1; t.parts = group.length; });
+      });
+    }
+
+    function planCheck(semId) {
+      const { settings, tasks } = state.sems[semId];
+      const start = planStart(settings);
+      const open = tasks.filter(t => !t.done);
+      const late = open.filter(t => !t.date || t.date >= settings.ese);
+      let available = 0, studyDays = 0;
+      for (let d = start; d < settings.ese; d = addDays(d, 1)) {
+        const capacity = capacityOn(settings, d);
+        available += capacity;
+        if (capacity > 0) studyDays += 1;
+      }
+      const lateMinutes = sum(late, t => t.minutes);
+      const dated = open.filter(t => t.date).map(t => t.date).sort();
+      return {
+        start, available, studyDays,
+        needed: sum(open, t => t.minutes),
+        lateMinutes,
+        lateCount: late.length,
+        unscheduled: open.filter(t => !t.date).length,
+        lastDate: dated[dated.length - 1] || null,
+        extraPerDay: studyDays ? Math.ceil(lateMinutes / studyDays / 5) * 5 : 0,
+        afterIat: IATS.map(({ field, label, range }, i) => ({
+          label, range,
+          count: settings[field] && settings[field] >= todayIso()
+            ? open.filter(t => t.kind === "theory" && t.key && t.date && t.date >= settings[field] && (Number(t.key.match(/-m(\d)/)[1]) <= 3) === (i === 0)).length
+            : 0
+        })).filter(x => x.count > 0)
+      };
+    }
+
+    function unplannedCount(semId) {
+      const plan = state.sems[semId];
+      const open = new Set(plan.tasks.filter(t => !t.done && t.key).map(t => t.key));
+      let count = 0;
+      SEMESTERS.find(s => s.id === semId).courses.forEach(course => {
+        [...itemsOf(course).flatMap(item => (item.subs && item.subs.length ? item.subs : [item])), ...submissionsOf(course)].forEach(item => {
+          if (!isItemDone(item.key) && !open.has(item.key)) count += 1;
+        });
+      });
+      return count;
+    }
+
+    /* ---------- Task actions ---------- */
+
+    let currentSem = "s1";
+    let currentTab = "today";
+    let weekStart = todayIso();
+
+    const semData = () => SEMESTERS.find(s => s.id === currentSem);
+    const planData = () => state.sems[currentSem];
+
+    function setTaskDone(task, value) {
+      task.done = value;
+      task.doneOn = value ? todayIso() : null;
+      if (task.key) {
+        const othersOpen = planData().tasks.some(t => t.key === task.key && !t.done);
+        setItemDone(task.key, value && !othersOpen);
+      }
+      commit();
+    }
+
+    // Marking something finished (or not) changes what is left, so the rest of the plan moves with it.
+    function toggleItem(key, value) {
+      setItemDone(key, value);
+      rebuild(currentSem);
+      render();
+    }
+
+    function moveTask(task, date) {
+      task.date = date;
+      if (task.kind !== "custom") task.pinned = true;
+      commit();
+    }
+
+    function commit() {
+      reconcile();
+      save();
+      render();
+    }
+
+    /* ---------- Shared render pieces ---------- */
+
+    function colorOf(task) { return task.course ? COURSES[task.course].color : "plain"; }
+
+    function taskHeading(task) {
+      return task.item ? `${task.item} ${task.title}` : task.title;
+    }
+
+    function taskMeta(task, extra) {
+      const parts = [KIND_LABELS[task.kind]];
+      if (task.parts > 1) parts.push(`session ${task.part} of ${task.parts}`);
+      parts.push(fmtMinutes(task.minutes));
+      if (extra) parts.push(extra);
+      const due = task.key ? dueOf(currentSem, task.key) : null;
+      if (due && !task.done) parts.push(`due ${fmtDate(due)}`);
+      return parts.join(" · ");
+    }
+
+    function taskCheckbox(task) {
+      const box = el("input", { type: "checkbox", class: "check", "data-fid": `cb-${task.id}`, "aria-label": `Mark done: ${taskHeading(task)}` });
+      box.checked = task.done;
+      box.addEventListener("change", () => setTaskDone(task, box.checked));
+      return box;
+    }
+
+    function taskTitleButton(task) {
+      const button = el("button", { type: "button", class: "task-title", "data-fid": `open-${task.id}`, text: taskHeading(task), title: "Change this task" });
+      button.addEventListener("click", () => openDialog(task));
+      return button;
+    }
+
+    function taskRow(task, action) {
+      const course = task.course ? COURSES[task.course] : null;
+      const row = el("li", { class: `task ${colorOf(task)}${task.done ? " is-done" : ""}` }, [
+        taskCheckbox(task),
+        el("div", { class: "task-main" }, [
+          taskTitleButton(task),
+          el("p", { class: "task-meta" }, [
+            course ? el("span", { class: "pill", text: course.short }) : null,
+            document.createTextNode(`${course ? " " : ""}${taskMeta(task, action && action.note)}`)
+          ])
+        ]),
+        action ? actionButton(task, action) : null
+      ]);
+      return row;
+    }
+
+    function actionButton(task, action) {
+      const button = el("button", { type: "button", class: "btn", "data-fid": `act-${task.id}`, text: action.label, "aria-label": `${action.label}: ${taskHeading(task)}` });
+      button.addEventListener("click", () => moveTask(task, action.date));
+      return button;
+    }
+
+    function milestones(semId) {
+      const s = state.sems[semId].settings;
+      const list = [];
+      IATS.forEach(({ field, label }) => { if (s[field]) list.push({ date: s[field], label }); });
+      if (s.ese) list.push({ date: s.ese, label: s.confirmed ? "End-sem exams begin" : "End-sem exams (placeholder)" });
+      return list.sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    /* ---------- Views ---------- */
+
+    function renderSummary() {
+      const today = todayIso();
+      const { tasks, settings } = planData();
+      const due = tasks.filter(t => t.date === today);
+      const doneToday = due.filter(t => t.done);
+      const leftMinutes = sum(due.filter(t => !t.done), t => t.minutes);
+
+      const monday = mondayOf(today), sunday = addDays(monday, 6);
+      const week = tasks.filter(t => t.date && t.date >= monday && t.date <= sunday);
+      const weekDone = sum(week.filter(t => t.done), t => t.minutes);
+      const weekTotal = sum(week, t => t.minutes);
+
+      const courses = semData().courses;
+      const theory = courses.filter(c => c.type === "theory").flatMap(itemsOf);
+      const theoryDone = theory.filter(i => isItemDone(i.key)).length;
+      const everything = courses.flatMap(itemsOf);
+      const everythingDone = everything.filter(i => isItemDone(i.key)).length;
+
+      const streakDays = new Set(SEMESTERS.flatMap(s => state.sems[s.id].tasks).filter(t => t.doneOn).map(t => t.doneOn));
+      let streak = 0;
+      let cursor = streakDays.has(today) ? today : addDays(today, -1);
+      while (streakDays.has(cursor)) { streak += 1; cursor = addDays(cursor, -1); }
+
+      const next = milestones(currentSem).find(m => m.date >= today);
+      const daysLeft = next ? daysBetween(today, next.date) : null;
+
+      const tile = (label, value, width, note) => el("div", { class: "stat" }, [
+        el("div", { class: "mono", text: label }),
+        el("div", { class: "stat-value", text: value }),
+        width === null ? null : el("div", { class: "bar" }, [spanWidth(width)]),
+        el("p", { class: "stat-note", text: note })
+      ]);
+
+      document.getElementById("summary").replaceChildren(
+        tile("Today", due.length ? `${doneToday.length} / ${due.length} tasks` : "No tasks", pct(doneToday.length, due.length),
+          `${due.length ? `${fmtMinutes(leftMinutes)} left` : "Nothing planned"}${streak ? ` · ${streak}-day streak` : ""}`),
+        tile("This week", `${fmtMinutes(weekDone)} / ${fmtMinutes(weekTotal)}`, pct(weekDone, weekTotal), "Planned study time completed"),
+        tile("Theory modules", `${theoryDone} / ${theory.length}`, pct(theoryDone, theory.length), `${pct(everythingDone, everything.length)}% of all modules and labs`),
+        tile(next ? next.label.replace(" (placeholder)", "") : "Exams", next ? (daysLeft === 0 ? "Today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`) : "No date set", null,
+          next ? `${fmtDate(next.date, true)}${next.date === settings.ese && !settings.confirmed ? " · placeholder" : ""}` : "Add it under Dates & hours")
+      );
+    }
+
+    function spanWidth(width) {
+      const span = el("span");
+      span.style.width = `${width}%`;
+      return span;
+    }
+
+    function banner(text, buttonLabel, onClick) {
+      const parts = [el("p", { text })];
+      if (buttonLabel) {
+        const button = el("button", { type: "button", class: "btn", text: buttonLabel });
+        button.addEventListener("click", onClick);
+        parts.push(button);
+      }
+      return el("div", { class: "banner" }, parts);
+    }
+
+    function replanNow() {
+      rebuild(currentSem);
+      render();
+    }
+
+    function renderBanners() {
+      const today = todayIso();
+      const { tasks, settings } = planData();
+      const list = [];
+      if (saveFailed) list.push(banner("This browser isn't saving your changes, so they will be lost when you close the page."));
+      if (!settings.confirmed) {
+        list.push(banner(`Exam dates aren't in the syllabus, so this plan uses a placeholder of ${fmtDate(settings.ese, true)}. Add your college's real dates.`, "Set dates", () => selectTab("plan")));
+      }
+      const check = planCheck(currentSem);
+      const missed = tasks.filter(t => !t.done && t.date && t.date < today);
+      if (missed.length) {
+        list.push(banner(`${missed.length} missed task${missed.length === 1 ? "" : "s"} (${fmtMinutes(sum(missed, t => t.minutes))}). Replanning spreads them across the days ahead.`, "Replan", replanNow));
+      }
+      if (check.lateMinutes && !missed.length) {
+        list.push(banner(check.studyDays
+          ? `${fmtMinutes(check.lateMinutes)} of work doesn't fit before the exams. Add about ${fmtMinutes(check.extraPerDay)} a day to fit it in.`
+          : "The exam date has passed. Set the next date to schedule your remaining work.", "Change hours", () => selectTab("plan")));
+      }
+      const unplanned = unplannedCount(currentSem);
+      if (unplanned) {
+        list.push(banner(`${unplanned} unfinished item${unplanned === 1 ? " isn't" : "s aren't"} in your schedule yet.`, "Update plan", replanNow));
+      }
+      document.getElementById("banners").replaceChildren(...list);
+    }
+
+    function renderToday() {
+      const today = todayIso();
+      const { tasks } = planData();
+      document.getElementById("todayTitle").textContent = `Today · ${fmtDate(today)}`;
+      const late = tasks.filter(t => !t.done && t.date && t.date < today).sort((a, b) => a.date.localeCompare(b.date));
+      const due = tasks.filter(t => t.date === today);
+      const tomorrow = addDays(today, 1);
+      const parts = [];
+
+      milestones(currentSem).filter(m => m.date === today).forEach(m => parts.push(el("div", { class: "milestone", text: m.label })));
+
+      if (due.length) {
+        parts.push(el("ul", { class: "tasks" }, due.map(t => taskRow(t, t.done ? null : { label: "Tomorrow", date: tomorrow }))));
+      } else {
+        const next = tasks.filter(t => !t.done && t.date && t.date > today).sort((a, b) => a.date.localeCompare(b.date))[0];
+        const empty = el("div", { class: "empty" }, [
+          el("p", { text: next ? `Nothing planned today. Your next task is on ${fmtDate(next.date)}.` : "Nothing planned today, and no tasks are coming up." })
+        ]);
+        if (next) {
+          const jump = el("button", { type: "button", class: "btn", text: "View that week" });
+          jump.addEventListener("click", () => { weekStart = next.date; selectTab("week"); });
+          empty.appendChild(el("p", {}, [jump]));
+        }
+        parts.push(empty);
+      }
+      if (late.length) {
+        parts.push(el("div", { class: "mono group-label late", text: `Missed · ${late.length}` }));
+        parts.push(el("ul", { class: "tasks" }, late.map(t => taskRow(t, { label: "Do today", date: today, note: `was ${fmtDate(t.date)}` }))));
+      }
+      document.getElementById("todayList").replaceChildren(...parts);
+
+      const doneMinutes = sum(due.filter(t => t.done), t => t.minutes);
+      const totalMinutes = sum(due, t => t.minutes);
+      const p = pct(doneMinutes, totalMinutes);
+      const ring = document.getElementById("ring");
+      ring.style.setProperty("--p", p);
+      ring.setAttribute("data-label", `${p}%`);
+      document.getElementById("ringCaption").textContent = totalMinutes
+        ? `${fmtMinutes(doneMinutes)} of ${fmtMinutes(totalMinutes)} done today`
+        : "No study planned today";
+
+      renderDueNext();
+
+      const dates = milestones(currentSem);
+      document.getElementById("keyDates").replaceChildren(...(dates.length ? dates.map(m => el("li", {}, [
+        el("span", { text: m.label }),
+        el("span", { text: fmtDate(m.date) })
+      ])) : [el("li", { text: "No dates set" })]));
+
+      document.getElementById("miniProgress").replaceChildren(...semData().courses.filter(c => c.type === "theory").map(course => {
+        const items = itemsOf(course);
+        const done = items.filter(i => isItemDone(i.key)).length;
+        return el("div", { class: course.color }, [
+          el("div", { class: "row" }, [el("span", { text: course.short }), el("span", { text: `${done}/${items.length}` })]),
+          el("div", { class: "bar" }, [spanWidth(pct(done, items.length))])
+        ]);
+      }));
+    }
+
+    function openSubmissions(semId) {
+      const list = [];
+      SEMESTERS.find(s => s.id === semId).courses.forEach(course => {
+        submissionsOf(course).forEach(work => {
+          if (!isItemDone(work.key)) list.push({ course, title: work.title, kind: work.kind, due: dueOf(semId, work.key) });
+        });
+      });
+      state.sems[semId].tasks.filter(t => t.kind === "custom" && !t.done && t.date).forEach(t => {
+        list.push({ course: t.course ? COURSES[t.course] : null, title: t.title, kind: "custom", due: t.date });
+      });
+      return list.sort((a, b) => a.due.localeCompare(b.due));
+    }
+
+    function renderDueNext() {
+      const list = openSubmissions(currentSem).filter(x => x.kind !== "custom" || x.course);
+      const shown = list.slice(0, 6);
+      const box = document.getElementById("dueNext");
+      if (!shown.length) {
+        box.replaceChildren(el("li", { text: "Nothing left to hand in." }));
+        return;
+      }
+      box.replaceChildren(...shown.map(x => el("li", {}, [
+        el("span", { text: `${x.course ? `${x.course.short}: ` : ""}${x.title}` }),
+        el("span", { class: `when ${dueState(x.due, false) === "is-late" ? "is-late" : ""}`, text: dueLabel(x.due, false) })
+      ])));
+      if (list.length > shown.length) box.appendChild(el("li", { class: "when", text: `And ${list.length - shown.length} more on the Subjects tab` }));
+    }
+
+    function renderWeek() {
+      const today = todayIso();
+      const { tasks, settings } = planData();
+      const end = addDays(weekStart, 6);
+      document.getElementById("weekTitle").textContent = weekStart === today
+        ? "Next 7 days"
+        : `${parseIso(weekStart).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} – ${parseIso(end).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`;
+      const marks = milestones(currentSem);
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const date = addDays(weekStart, i);
+        const dayTasks = tasks.filter(t => t.date === date);
+        const load = sum(dayTasks, t => t.minutes);
+        const capacity = capacityOn(settings, date);
+        const over = load > capacity + FIT_SLACK;
+        const column = el("div", { class: `day${date === today ? " is-today" : ""}`, "data-date": date }, [
+          el("div", { class: "day-head" }, [
+            el("span", { class: "day-name", text: `${DAY_LABELS[dayIndex(date)]} ${parseIso(date).getDate()}` }),
+            el("span", { class: `day-load${over ? " over" : ""}`, text: `${fmtMinutes(load)} / ${fmtMinutes(capacity)}`, title: "Planned study time and the time you set for this day" })
+          ]),
+          ...marks.filter(m => m.date === date).map(m => el("div", { class: "milestone", text: m.label })),
+          ...dayTasks.map(weekChip)
+        ]);
+        const add = el("button", { type: "button", class: "day-add", text: "+ Add", "aria-label": `Add a task on ${fmtDate(date)}` });
+        add.addEventListener("click", () => openDialog(null, date));
+        column.appendChild(add);
+        column.addEventListener("dragover", e => { e.preventDefault(); column.classList.add("is-over"); });
+        column.addEventListener("dragleave", () => column.classList.remove("is-over"));
+        column.addEventListener("drop", e => {
+          e.preventDefault();
+          column.classList.remove("is-over");
+          const task = tasks.find(t => t.id === e.dataTransfer.getData("text/plain"));
+          if (task && task.date !== date) moveTask(task, date);
+        });
+        days.push(column);
+      }
+      document.getElementById("weekGrid").replaceChildren(...days);
+    }
+
+    function weekChip(task) {
+      const course = task.course ? COURSES[task.course] : null;
+      const chip = el("div", { class: `chip ${colorOf(task)}${task.done ? " is-done" : ""}`, draggable: "true" }, [
+        taskCheckbox(task),
+        el("div", { class: "task-main" }, [
+          course ? el("div", { class: "chip-course", text: course.short }) : null,
+          taskTitleButton(task),
+          el("p", { class: "task-meta", text: taskMeta(task) })
+        ])
+      ]);
+      chip.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", task.id));
+      return chip;
+    }
+
+    const TYPE_LABELS = { theory: "Module", tutorial: "Tutorial", lab: "Experiment", project: "Project step", skill: "Module", assignment: "Assignment", mini: "Mini project / quiz", submission: "Term work", viva: "Viva prep", review: "Nirman review", custom: "Assignment", sub: "Sub-module" };
+    const TYPE_GROUPS = { sub: "learn", theory: "learn", tutorial: "learn", lab: "learn", project: "learn", skill: "learn", assignment: "assignment", custom: "assignment", mini: "termwork", submission: "termwork", review: "termwork", viva: "viva" };
+    const STATUS_FILTERS = [["", "All"], ["late", "Overdue"], ["soon", "Due in 7 days"], ["later", "Later"], ["done", "Done"]];
+
+    const tracker = { subject: "", type: "", view: "subject", status: "", open: {} };
+    try {
+      const saved = JSON.parse(localStorage.getItem(TRACKER_KEY)) || {};
+      if (COURSES[saved.subject]) tracker.subject = saved.subject;
+      if (["learn", "assignment", "termwork", "viva"].includes(saved.type)) tracker.type = saved.type;
+      if (saved.view === "due") tracker.view = "due";
+      if (STATUS_FILTERS.some(([id]) => id === saved.status)) tracker.status = saved.status;
+      if (saved.open && typeof saved.open === "object") {
+        Object.entries(saved.open).forEach(([key, value]) => { if (typeof value === "boolean") tracker.open[key] = value; });
+      }
+    } catch (e) {}
+
+    // Subjects start closed so the table opens as an overview; filtering opens them to show the matches.
+    const filtering = () => !!(tracker.subject || tracker.type || tracker.status);
+    const isOpen = id => (id in tracker.open ? tracker.open[id] : !id.startsWith("m:") && filtering());
+    const moduleId = key => `m:${key}`;
+
+    function rowStatus(row) {
+      if (row.done) return { id: "done", text: "Done" };
+      const days = daysBetween(todayIso(), row.due);
+      if (days < 0) return { id: "late", text: `Overdue by ${-days} day${days === -1 ? "" : "s"}` };
+      if (days === 0) return { id: "soon", text: "Due today" };
+      if (days <= 7) return { id: "soon", text: days === 1 ? "Due tomorrow" : `Due in ${days} days` };
+      return { id: "later", text: `In ${days} days` };
+    }
+
+    function trackerRows() {
+      const openByKey = {};
+      planData().tasks.filter(t => !t.done && t.key).forEach(t => { (openByKey[t.key] = openByKey[t.key] || []).push(t); });
+      return semData().courses.flatMap(course => {
+        const fixed = [
+          ...itemsOf(course).map(item => ({ ...item, kind: course.type, revisable: course.type !== "project" })),
+          ...submissionsOf(course)
+        ].map(item => {
+          const subs = (item.subs || []).map(sub => {
+            const row = {
+              course, key: sub.key, kind: "sub", label: sub.label, title: sub.title, detail: "", revisable: true,
+              due: dueOf(currentSem, sub.key), done: isItemDone(sub.key), sessions: openByKey[sub.key] || [], subs: []
+            };
+            return { ...row, status: rowStatus(row) };
+          });
+          return {
+            course, key: item.key, kind: item.kind, label: item.label, title: item.title, detail: item.detail || "",
+            revisable: !!item.revisable,
+            due: dueOf(currentSem, item.key),
+            done: isItemDone(item.key),
+            sessions: subs.length ? subs.flatMap(sub => sub.sessions) : (openByKey[item.key] || []),
+            subs
+          };
+        });
+        const custom = planData().tasks.filter(t => t.kind === "custom" && t.course === course.id && t.date).map(task => ({
+          course, kind: "custom", label: "", title: task.title, detail: "", revisable: false,
+          due: task.date, done: task.done, sessions: [], subs: [], task
+        }));
+        return [...fixed, ...custom].map(row => ({ ...row, status: rowStatus(row) }));
+      });
+    }
+
+    function rowCheckbox(row) {
+      const id = row.task ? `custom-${row.task.id}` : `item-${row.key}`;
+      const box = el("input", { type: "checkbox", class: "check", id, "data-fid": id });
+      box.checked = row.done;
+      box.indeterminate = !row.done && row.subs.some(sub => sub.done);
+      box.addEventListener("change", () => {
+        if (row.task) setTaskDone(row.task, box.checked);
+        else toggleItem(row.key, box.checked);
+      });
+      return { box, id };
+    }
+
+    function rowDueButton(row) {
+      const heading = row.label ? `${row.label} ${row.title}` : row.title;
+      const button = el("button", {
+        type: "button",
+        class: `due-btn ${dueState(row.due, row.done)}`,
+        "data-fid": row.task ? `edit-${row.task.id}` : `due-${row.key}`,
+        text: fmtDate(row.due),
+        "aria-label": `Change due date for ${heading}. Currently ${fmtDate(row.due)}`
+      });
+      button.addEventListener("click", () => (row.task ? openDialog(row.task) : openDueDialog(row.key, heading)));
+      return button;
+    }
+
+    function plannedCell(row) {
+      if (row.done) return [el("span", { class: "no-rev", text: "–" })];
+      if (row.task) return [document.createTextNode(fmtDate(row.task.date))];
+      const dated = row.sessions.filter(t => t.date).map(t => t.date).sort();
+      if (!dated.length) return [el("span", { class: "no-rev", text: "Not scheduled" })];
+      const left = sum(row.sessions, t => t.minutes);
+      const missed = dated[0] < todayIso();
+      return [
+        el("span", { class: missed ? "planned-late" : "", text: `${missed ? "Missed " : ""}${fmtDate(dated[0])}` }),
+        el("span", { class: "planned-left", text: row.sessions.length > 1 ? `${row.sessions.length} sessions, ${fmtMinutes(left)}` : fmtMinutes(left) })
+      ];
+    }
+
+    function moduleToggle(row) {
+      if (!row.subs.length) return el("span", { class: "mod-spacer" });
+      const id = moduleId(row.key);
+      const open = isOpen(id);
+      const button = el("button", {
+        type: "button", class: "mod-toggle", "data-fid": `mod-${row.key}`, "aria-expanded": String(open),
+        "aria-label": `${open ? "Hide" : "Show"} sub-modules of ${row.label} ${row.title}`, text: open ? "▾" : "▸"
+      });
+      button.addEventListener("click", () => {
+        tracker.open[id] = !open;
+        saveTracker();
+        renderSubjects();
+        document.querySelector(`[data-fid="mod-${row.key}"]`).focus();
+      });
+      return button;
+    }
+
+    function rowWithSubs(row, withSubject) {
+      const rows = [trackerRow(row, withSubject)];
+      if (row.subs.length && isOpen(moduleId(row.key))) {
+        row.subs.filter(sub => !tracker.status || sub.status.id === tracker.status)
+          .forEach(sub => rows.push(trackerRow(sub, withSubject)));
+      }
+      return rows;
+    }
+
+    function trackerRow(row, withSubject) {
+      const { box, id } = rowCheckbox(row);
+      let revise;
+      if (row.revisable) {
+        const revKey = `rev:${row.key}`;
+        const revBox = el("input", { type: "checkbox", class: "check", "data-fid": `rev-${row.key}`, "aria-label": `Revised ${row.label} ${row.title}` });
+        revBox.checked = isItemDone(revKey);
+        revBox.indeterminate = !revBox.checked && row.subs.some(sub => isItemDone(`rev:${sub.key}`));
+        revBox.addEventListener("change", () => toggleItem(revKey, revBox.checked));
+        revise = el("td", { class: "c-rev", "data-label": "Revised" }, [revBox]);
+      } else {
+        revise = el("td", { class: "c-rev none" }, [el("span", { class: "no-rev", "aria-hidden": "true", text: "–" })]);
+      }
+      return el("tr", { class: `${row.kind === "sub" ? "sub-row" : "item-row"} ${row.course.color}${row.done ? " is-done" : ""}` }, [
+        el("td", { class: "c-done" }, [box]),
+        el("td", { class: "c-item" }, [
+          el("div", { class: "item-line" }, [
+            row.kind === "sub" ? null : moduleToggle(row),
+            el("label", { for: id }, [row.label ? el("b", { text: row.label }) : null, document.createTextNode(row.title)])
+          ]),
+          row.subs.length ? el("span", { class: "item-detail", text: `${row.subs.filter(sub => sub.done).length} of ${row.subs.length} sub-modules done, ${row.subs.filter(sub => isItemDone(`rev:${sub.key}`)).length} revised` }) : null,
+          row.detail ? el("span", { class: "item-detail", text: row.detail }) : null
+        ]),
+        withSubject ? el("td", { class: "c-subject" }, [el("span", { class: "pill", text: row.course.short })]) : null,
+        el("td", { class: "c-type" }, [el("span", { class: "type-text", text: TYPE_LABELS[row.kind] })]),
+        el("td", { class: "c-due", "data-label": "Due" }, [rowDueButton(row)]),
+        el("td", { class: "c-status" }, [el("span", { class: `st st-${row.status.id}`, text: row.status.text })]),
+        el("td", { class: "c-planned", "data-label": "Planned" }, plannedCell(row)),
+        revise
+      ]);
+    }
+
+    function groupRow(course, courseRows, columns) {
+      const learn = courseRows.filter(r => TYPE_GROUPS[r.kind] === "learn");
+      const work = courseRows.filter(r => TYPE_GROUPS[r.kind] !== "learn");
+      const learnDone = learn.filter(r => r.done).length;
+      const open = courseRows.filter(r => !r.done).sort((a, b) => a.due.localeCompare(b.due));
+      const planned = planData().tasks.filter(t => t.course === course.id && !t.done && t.date).map(t => t.date).sort()[0];
+      const noteParts = [];
+      if (open.length) noteParts.push(`Next due: ${open[0].due < todayIso() ? "overdue since " : ""}${fmtDate(open[0].due)}`);
+      if (planned) noteParts.push(`planned ${fmtDate(planned)}`);
+      const isCollapsed = !isOpen(course.id);
+
+      const toggle = el("button", { type: "button", class: "group-toggle", "data-fid": `group-${course.id}`, "aria-expanded": String(!isCollapsed) }, [
+        el("span", { class: "chev", "aria-hidden": "true", text: isCollapsed ? "▸" : "▾" }),
+        el("span", { "aria-hidden": "true", text: `${course.emoji} ` }),
+        document.createTextNode(course.name),
+        el("span", { class: "group-code", text: `${course.code} · ${course.credits} cr · ${course.marks}` })
+      ]);
+      toggle.addEventListener("click", () => {
+        tracker.open[course.id] = isCollapsed;
+        saveTracker();
+        renderSubjects();
+        document.querySelector(`[data-fid="group-${course.id}"]`).focus();
+      });
+      const add = el("button", { type: "button", class: "mini-btn", "data-fid": `add-${course.id}`, text: "+ Add assignment", "aria-label": `Add an assignment for ${course.name}` });
+      add.addEventListener("click", () => openDialog(null, addDays(todayIso(), 7), course.id));
+      const workDone = work.filter(r => r.done).length;
+      const revisable = learn.filter(r => r.revisable);
+      const revised = revisable.filter(r => isItemDone(`rev:${r.key}`)).length;
+
+      return el("tr", { class: `group-row ${course.color}`, "data-course": course.id }, [
+        el("th", { colspan: String(columns), scope: "rowgroup" }, [
+          el("div", { class: "group-head" }, [
+            toggle,
+            el("span", { class: "group-next", text: noteParts.length ? noteParts.join(" · ") : "All done" }),
+            el("span", { class: "group-count" }, [
+              el("span", { text: `${learnDone}/${learn.length}${revisable.length ? ` · revised ${revised}/${revisable.length}` : ""}${work.length ? ` · hand-ins ${workDone}/${work.length}` : ""}` }),
+              el("span", { class: "bar" }, [spanWidth(pct(learnDone, learn.length))])
+            ]),
+            add
+          ])
+        ])
+      ]);
+    }
+
+    function saveTracker() {
+      try { localStorage.setItem(TRACKER_KEY, JSON.stringify(tracker)); } catch (e) {}
+    }
+
+    function renderSubjects() {
+      const courses = semData().courses;
+      if (tracker.subject && !courses.some(c => c.id === tracker.subject)) tracker.subject = "";
+      const rows = trackerRows();
+
+      const term = teachingTerm(currentSem);
+      const late = rows.filter(r => r.status.id === "late").length;
+      document.getElementById("subjectNote").replaceChildren(
+        document.createTextNode(`Due dates count from the semester start on ${fmtDate(term.start, true)}, across ${Math.round(term.span / 7)} teaching weeks to ${fmtDate(term.end)}. They are targets, so click a date to enter your faculty's date instead. The syllabus sets no assignments for theory subjects, so add any you're given. `),
+        late ? el("strong", { text: `${late} past due. Tick anything you've already finished.` }) : document.createTextNode("Nothing is past due.")
+      );
+
+      const subjectSelect = document.getElementById("tSubject");
+      subjectSelect.replaceChildren(
+        el("option", { value: "", text: "All subjects" }),
+        el("optgroup", { label: "Exam subjects" }, courses.filter(c => c.type === "theory").map(c => el("option", { value: c.id, text: c.short }))),
+        el("optgroup", { label: "Tutorials, labs, projects and skills" }, courses.filter(c => c.type !== "theory").map(c => el("option", { value: c.id, text: c.short })))
+      );
+      subjectSelect.value = tracker.subject;
+      document.getElementById("tType").value = tracker.type;
+      document.getElementById("tView").value = tracker.view;
+
+      const choice = courses.find(c => c.options);
+      document.getElementById("tActivityWrap").hidden = !choice;
+      if (choice) {
+        const activity = document.getElementById("tActivity");
+        activity.replaceChildren(...Object.entries(choice.options).map(([value, option]) => el("option", { value, text: option.label })));
+        activity.value = state.activity;
+      }
+
+      const scoped = rows.filter(r => (!tracker.subject || r.course.id === tracker.subject) && (!tracker.type || TYPE_GROUPS[r.kind] === tracker.type));
+      document.getElementById("tStatus").replaceChildren(...STATUS_FILTERS.map(([id, label]) => {
+        const count = id ? scoped.filter(r => r.status.id === id).length : scoped.length;
+        const button = el("button", { type: "button", "data-fid": `status-${id || "all"}`, "aria-pressed": String(tracker.status === id), text: `${label} ${count}` });
+        button.addEventListener("click", () => {
+          tracker.status = id;
+          saveTracker();
+          renderSubjects();
+          document.querySelector(`[data-fid="status-${id || "all"}"]`).focus();
+        });
+        return button;
+      }));
+
+      const shown = scoped.filter(r => !tracker.status || r.status.id === tracker.status || r.subs.some(sub => sub.status.id === tracker.status));
+      const flat = tracker.view === "due";
+      document.getElementById("tCollapse").hidden = flat;
+      document.getElementById("tCollapse").textContent = courses.every(c => isOpen(c.id)) ? "Collapse all" : "Expand all";
+      const withSubs = rows.filter(r => r.subs.length);
+      document.getElementById("tSubs").textContent = withSubs.length && withSubs.every(r => isOpen(moduleId(r.key))) ? "Hide sub-modules" : "Show sub-modules";
+
+      const heads = [["Done", "c-done"], ["Item", "c-item"], flat ? ["Subject", "c-subject"] : null, ["Type", "c-type"], ["Due", "c-due"], ["Status", "c-status"], ["Planned", "c-planned"], ["Revised", "c-rev"]].filter(Boolean);
+      const bodies = [];
+      if (flat) {
+        const sorted = [...shown].sort((a, b) => Number(a.done) - Number(b.done) || a.due.localeCompare(b.due));
+        if (sorted.length) bodies.push(el("tbody", {}, sorted.flatMap(r => rowWithSubs(r, true))));
+      } else {
+        courses.forEach(course => {
+          const matching = shown.filter(r => r.course === course);
+          if (!matching.length) return;
+          bodies.push(el("tbody", {}, [
+            groupRow(course, rows.filter(r => r.course === course), heads.length),
+            ...(isOpen(course.id) ? matching.flatMap(r => rowWithSubs(r, false)) : [])
+          ]));
+        });
+      }
+      if (!bodies.length) {
+        const clear = el("button", { type: "button", class: "btn", text: "Show everything" });
+        clear.addEventListener("click", () => {
+          Object.assign(tracker, { subject: "", type: "", status: "" });
+          saveTracker();
+          renderSubjects();
+        });
+        bodies.push(el("tbody", {}, [el("tr", {}, [el("td", { colspan: String(heads.length), class: "tracker-empty" }, [document.createTextNode("Nothing matches these filters."), clear])])]));
+      }
+      document.getElementById("subjectBoards").replaceChildren(el("table", { class: "tracker", id: "tracker", tabindex: "-1" }, [
+        el("caption", { text: `${semData().title} subjects, modules and submissions` }),
+        el("thead", {}, [el("tr", {}, heads.map(([label, cls]) => el("th", { scope: "col", class: cls, text: label })))]),
+        ...bodies
+      ]));
+    }
+
+    function fillPlanForm() {
+      const { settings } = planData();
+      document.getElementById("fSemStart").value = settings.semStart;
+      document.getElementById("fEse").value = settings.ese;
+      document.getElementById("fStart").value = settings.start;
+      document.getElementById("fIat1").value = settings.iat1;
+      document.getElementById("fIat2").value = settings.iat2;
+      document.getElementById("fPace").value = String(settings.pace);
+      document.getElementById("planStatus").textContent = "";
+      document.getElementById("hoursGrid").replaceChildren(...DAY_LABELS.map((label, i) => {
+        const input = el("input", { type: "number", min: "0", max: "16", step: "0.5", id: `fHour${i}`, value: settings.hours[i] });
+        input.addEventListener("input", renderHoursTotal);
+        return el("label", { class: "field" }, [document.createTextNode(label), input]);
+      }));
+      renderHoursTotal();
+      const slHours = sum(semData().courses.filter(c => c.type === "theory"), c => c.sl);
+      document.getElementById("paceHelp").textContent = `The syllabus sets ${slHours} self-learning hours for this semester's theory subjects. That time also covers topics beyond the exam portion, and you've probably done some work already.`;
+    }
+
+    function renderHoursTotal() {
+      const total = sum(DAY_LABELS.map((_, i) => clampHours(document.getElementById(`fHour${i}`).value)), h => h);
+      document.getElementById("hoursTotal").textContent = `${total} hours a week. Set a day to 0 to keep it free.`;
+    }
+
+    function renderPlanCheck() {
+      const { settings } = planData();
+      const check = planCheck(currentSem);
+      const fits = !check.lateMinutes;
+      const parts = [
+        el("p", {
+          class: `check-result ${fits ? "ok" : "bad"}`,
+          text: !check.studyDays
+            ? "No study days are left before the exam date. Check the date and your hours."
+            : fits
+              ? (check.lastDate ? `Yes. You finish on ${fmtDate(check.lastDate)}, ${daysBetween(check.lastDate, settings.ese)} days before the exams.` : "Yes. Nothing is left to schedule.")
+              : `Not yet. ${fmtMinutes(check.lateMinutes)} runs past the exams. Add about ${fmtMinutes(check.extraPerDay)} a day, lower the study depth or move the date.`
+        }),
+        el("dl", {}, [
+          el("dt", { text: "Work left to do" }), el("dd", { text: fmtMinutes(check.needed) }),
+          el("dt", { text: "Time you've set before the exams" }), el("dd", { text: fmtMinutes(check.available) }),
+          el("dt", { text: "Study days left" }), el("dd", { text: String(check.studyDays) }),
+          el("dt", { text: "Plan runs from" }), el("dd", { text: fmtDate(check.start) })
+        ])
+      ];
+      if (check.unscheduled) {
+        parts.push(el("p", { class: "warn-line", text: `${check.unscheduled} tasks have no date because there are too few study hours to place them. Add hours to schedule them.` }));
+      }
+      check.afterIat.forEach(({ label, range, count }) => {
+        parts.push(el("p", { class: "warn-line", text: `${count} study sessions from ${range} fall on or after ${label}. Drag them earlier in the Week view if the test covers those modules.` }));
+      });
+      document.getElementById("planCheck").replaceChildren(...parts);
+    }
+
+    let lastRenderDay = todayIso();
+
+    function render() {
+      lastRenderDay = todayIso();
+      dueCache = {};
+      const active = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.fid : null;
+      renderSummary();
+      renderBanners();
+      renderToday();
+      renderWeek();
+      renderSubjects();
+      renderPlanCheck();
+      if (active) {
+        const again = document.querySelector(`[data-fid="${CSS.escape(active)}"]`);
+        if (again) again.focus();
+        else if (document.getElementById("tracker") && currentTab === "subjects") document.getElementById("tracker").focus();
+      }
+    }
+
+    /* ---------- Controls ---------- */
+
+    const tabs = [...document.querySelectorAll("[data-tab]")];
+
+    function selectTab(name) {
+      currentTab = name;
+      tabs.forEach(tab => {
+        const selected = tab.dataset.tab === name;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        document.getElementById(`panel-${tab.dataset.tab}`).hidden = !selected;
+      });
+      try { localStorage.setItem(TAB_KEY, name); } catch (e) {}
+      if (name === "week") renderWeek();
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => selectTab(tab.dataset.tab));
+      tab.addEventListener("keydown", e => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        selectTab(next.dataset.tab);
+        next.focus();
+      });
+    });
+
+    function selectSemester(id) {
+      currentSem = id;
+      document.getElementById("semSelect").value = id;
+      try { localStorage.setItem(SEM_KEY, id); } catch (e) {}
+      weekStart = planStart(planData().settings);
+      fillPlanForm();
+      fillCourseOptions();
+      render();
+    }
+    document.getElementById("semSelect").addEventListener("change", e => selectSemester(e.target.value));
+
+    document.getElementById("weekPrev").addEventListener("click", () => { weekStart = addDays(weekStart, -7); renderWeek(); });
+    document.getElementById("weekNext").addEventListener("click", () => { weekStart = addDays(weekStart, 7); renderWeek(); });
+    document.getElementById("weekNow").addEventListener("click", () => { weekStart = todayIso(); renderWeek(); });
+    document.getElementById("addToday").addEventListener("click", () => openDialog(null, todayIso()));
+    document.getElementById("printPage").addEventListener("click", () => window.print());
+
+    document.getElementById("planForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const { settings } = planData();
+      settings.semStart = document.getElementById("fSemStart").value;
+      settings.ese = document.getElementById("fEse").value;
+      settings.start = document.getElementById("fStart").value;
+      settings.iat1 = document.getElementById("fIat1").value;
+      settings.iat2 = document.getElementById("fIat2").value;
+      settings.pace = Number(document.getElementById("fPace").value);
+      settings.hours = DAY_LABELS.map((_, i) => clampHours(document.getElementById(`fHour${i}`).value));
+      settings.confirmed = true;
+      rebuild(currentSem);
+      weekStart = planStart(settings);
+      render();
+      document.getElementById("planStatus").textContent = "Plan rebuilt.";
+    });
+
+    /* Subjects table controls */
+    [["tSubject", "subject"], ["tType", "type"], ["tView", "view"]].forEach(([id, field]) => {
+      document.getElementById(id).addEventListener("change", e => {
+        tracker[field] = e.target.value;
+        saveTracker();
+        renderSubjects();
+      });
+    });
+    document.getElementById("tActivity").addEventListener("change", e => {
+      state.activity = e.target.value;
+      rebuild(currentSem);
+      render();
+    });
+    document.getElementById("tCollapse").addEventListener("click", () => {
+      const courses = semData().courses;
+      const open = !courses.every(c => isOpen(c.id));
+      courses.forEach(c => { tracker.open[c.id] = open; });
+      saveTracker();
+      renderSubjects();
+    });
+    document.getElementById("tSubs").addEventListener("click", () => {
+      const rows = trackerRows().filter(r => r.subs.length);
+      const open = !rows.every(r => isOpen(moduleId(r.key)));
+      rows.forEach(r => {
+        tracker.open[moduleId(r.key)] = open;
+        if (open) tracker.open[r.course.id] = true;
+      });
+      saveTracker();
+      renderSubjects();
+    });
+    document.getElementById("tAdd").addEventListener("click", () => openDialog(null, addDays(todayIso(), 7), tracker.subject));
+
+    /* Add or edit dialog */
+    const dialog = document.getElementById("taskDialog");
+    let editing = null;
+
+    function fillCourseOptions() {
+      document.getElementById("dCourse").replaceChildren(
+        el("option", { value: "", text: "General" }),
+        ...semData().courses.map(c => el("option", { value: c.id, text: `${c.short} · ${c.code}` }))
+      );
+    }
+
+    function openDialog(task, date, courseId) {
+      editing = task;
+      const custom = !task || task.kind === "custom";
+      document.getElementById("dialogTitle").textContent = task ? "Change task" : courseId ? "Add assignment" : "Add task";
+      const title = document.getElementById("dTitle");
+      const course = document.getElementById("dCourse");
+      title.value = task ? taskHeading(task) : "";
+      title.disabled = !custom;
+      course.value = task ? task.course : (courseId || "");
+      course.disabled = !custom;
+      document.getElementById("dDate").value = task ? (task.date || todayIso()) : date;
+      document.getElementById("dMinutes").value = task ? task.minutes : (courseId ? 60 : 30);
+      const due = task && task.key ? dueOf(currentSem, task.key) : null;
+      document.getElementById("dNote").textContent = due
+        ? `Due ${fmtDate(due, true)}. The date above is the day you plan to work on it. Change the due date on the Subjects tab.`
+        : courseId ? "Use the date your faculty gave you. It appears in your schedule on that day." : "";
+      document.getElementById("dDelete").hidden = !(task && custom);
+      dialog.showModal();
+    }
+
+    document.getElementById("taskForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const date = document.getElementById("dDate").value;
+      const minutes = Math.min(600, Math.max(5, Number(document.getElementById("dMinutes").value) || 30));
+      if (!editing) {
+        planData().tasks.push(newTask({
+          kind: "custom",
+          title: document.getElementById("dTitle").value.trim() || "Task",
+          course: document.getElementById("dCourse").value,
+          minutes, date
+        }));
+      } else {
+        if (editing.kind === "custom") {
+          editing.title = document.getElementById("dTitle").value.trim() || editing.title;
+          editing.course = document.getElementById("dCourse").value;
+        } else if (date !== editing.date || minutes !== editing.minutes) {
+          editing.pinned = true;
+        }
+        editing.date = date;
+        editing.minutes = minutes;
+      }
+      dialog.close();
+      commit();
+    });
+    document.getElementById("dCancel").addEventListener("click", () => dialog.close());
+    document.getElementById("dDelete").addEventListener("click", () => {
+      if (!editing || !confirm(`Delete "${editing.title}"?`)) return;
+      const tasks = planData().tasks;
+      tasks.splice(tasks.indexOf(editing), 1);
+      dialog.close();
+      commit();
+    });
+
+    /* Due date dialog */
+    const dueDialog = document.getElementById("dueDialog");
+    let editingDue = null;
+
+    function openDueDialog(key, title) {
+      editingDue = key;
+      document.getElementById("dueItem").textContent = title;
+      document.getElementById("dueDate").value = dueOf(currentSem, key);
+      document.getElementById("dueSuggested").textContent = `Suggested from the semester start: ${fmtDate(suggestedDueDates(currentSem)[key], true)}.`;
+      document.getElementById("dueReset").hidden = !state.due[key];
+      dueDialog.showModal();
+    }
+
+    function setDue(key, date) {
+      if (date) state.due[key] = date; else delete state.due[key];
+      // Only submissions are booked against their deadline, so only they need replanning.
+      if (key.includes("-d-")) rebuild(currentSem);
+      commit();
+    }
+
+    document.getElementById("dueForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const date = document.getElementById("dueDate").value;
+      dueDialog.close();
+      if (isIso(date)) setDue(editingDue, date);
+    });
+    document.getElementById("dueCancel").addEventListener("click", () => dueDialog.close());
+    document.getElementById("dueReset").addEventListener("click", () => {
+      dueDialog.close();
+      setDue(editingDue, null);
+    });
+
+    /* Backup */
+    document.getElementById("exportData").addEventListener("click", () => {
+      const data = JSON.stringify({ app: "aids-fy-planner", version: 1, savedOn: todayIso(), planner: state, checklist: readChecklist() }, null, 2);
+      const url = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+      const link = el("a", { href: url, download: `study-planner-backup-${todayIso()}.json` });
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    const importFile = document.getElementById("importFile");
+    document.getElementById("importData").addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", async () => {
+      const file = importFile.files[0];
+      importFile.value = "";
+      if (!file) return;
+      let data = null;
+      try { data = JSON.parse(await file.text()); } catch (e) {}
+      if (!data || data.app !== "aids-fy-planner") {
+        alert("That file isn't a planner backup, so nothing was changed.");
+        return;
+      }
+      if (!confirm("Replace your current plan and checklist ticks with this backup?")) return;
+      state = cleanState(data.planner);
+      const ticks = {};
+      if (data.checklist && typeof data.checklist === "object") {
+        SHARED_KEYS.forEach(key => { if (data.checklist[key] === true) ticks[key] = true; });
+      }
+      checklist = ticks;
+      try { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(ticks)); } catch (e) { saveFailed = true; }
+      upgradePlans();
+      syncChecklist();
+      save();
+      selectSemester(currentSem);
+      document.getElementById("planStatus").textContent = "Backup restored.";
+    });
+
+    // Picks up ticks made in the checklist or planner in another tab.
+    window.addEventListener("storage", event => {
+      if (event.key === CHECKLIST_KEY) {
+        syncChecklist();
+      } else if (event.key === PLAN_KEY) {
+        state = cleanState(readJson(PLAN_KEY));
+        reconcile();
+        fillPlanForm();
+      } else {
+        return;
+      }
+      render();
+    });
+    // Refreshes the page if it was left open past midnight, or when returning to it.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return;
+      if (todayIso() !== lastRenderDay) weekStart = planStart(planData().settings);
+      syncChecklist();
+      render();
+    });
+
+    (function setupThemeToggle() {
+      const html = document.documentElement;
+      const toggle = document.getElementById("themeToggle");
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+      const apply = theme => {
+        html.setAttribute("data-theme", theme);
+        const next = theme === "dark" ? "light" : "dark";
+        toggle.setAttribute("aria-label", `Switch to ${next} mode`);
+        toggle.title = `Switch to ${next} mode`;
+        if (themeColor) themeColor.content = theme === "dark" ? "#171313" : "#f3ece6";
+      };
+      const saved = () => { try { return localStorage.getItem("theme"); } catch (e) { return null; } };
+      apply(html.getAttribute("data-theme") === "dark" ? "dark" : "light");
+      toggle.addEventListener("click", () => {
+        const theme = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+      const media = window.matchMedia && matchMedia("(prefers-color-scheme: dark)");
+      if (media && media.addEventListener) {
+        media.addEventListener("change", event => { if (!saved()) apply(event.matches ? "dark" : "light"); });
+      }
+    })();
+
+    /* Start */
+    reconcile();
+    // Plans saved by an older version are rebuilt to pick up new tasks; finished, added and moved tasks stay.
+    checklist = readChecklist();
+    upgradePlans();
+    syncChecklist();
+    save();
+    (function start() {
+      let savedSem = null, savedTab = null;
+      try { savedSem = localStorage.getItem(SEM_KEY); savedTab = localStorage.getItem(TAB_KEY); } catch (e) {}
+      selectTab(tabs.some(t => t.dataset.tab === savedTab) ? savedTab : "today");
+      selectSemester(savedSem === "s2" ? "s2" : "s1");
+    })();
+  </script>
+</body>
+</html>

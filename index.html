@@ -85,7 +85,7 @@
       white-space: nowrap;
     }
     .brand span { color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
-    .site-nav { display: flex; align-items: center; gap: clamp(12px, 2vw, 27px); }
+    .site-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: clamp(12px, 2vw, 27px); }
     .site-nav a {
       color: #343840;
       font-size: .84rem;
@@ -518,6 +518,14 @@
     .ref-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .ref-tags span { padding: 4px 10px; border-radius: 999px; background: var(--blue-pale); color: var(--blue); font-size: .8rem; font-weight: 650; }
     .ref-inline { color: #394961; }
+    .ref-table.ref-text td:not(:first-child), .ref-table.ref-text th:not(:first-child) { text-align: left; }
+    .ref-group { margin: 18px 0 10px; font-size: 1.05rem; }
+    .ref-group:first-child { margin-top: 0; }
+    .reference-part h4 { margin: 0 0 9px; font-size: 1rem; }
+    .sdg-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+    .sdg-grid dt { flex: 0 0 52px; white-space: nowrap; }
+    .abbreviation.in-syllabus { background: var(--blue-pale); box-shadow: inset 3px 0 0 var(--blue); }
+    .abbreviation dd small { display: block; margin-top: 3px; color: var(--blue); font-size: .78rem; font-weight: 700; }
     @media (max-width: 700px) { .ref-grid { grid-template-columns: 1fr; } }
     .abbreviation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
     .abbreviation { display: flex; gap: 10px; padding: 9px 11px; border-radius: 8px; background: #f5f7fb; }
@@ -757,6 +765,7 @@
       :root[data-theme="dark"] .ref-table th,
       :root[data-theme="dark"] .ref-table td { border-color: var(--line); }
       :root[data-theme="dark"] .abbreviation { background: #18263d; }
+      :root[data-theme="dark"] .abbreviation.in-syllabus { background: var(--blue-pale); }
       :root[data-theme="dark"] .seg-toggle { background: #1a2a43; }
       :root[data-theme="dark"] .seg-toggle button { color: #b8c8e0; }
       :root[data-theme="dark"] .exam-stat { border-color: var(--line); background: #18263d; }
@@ -825,6 +834,7 @@
         <a href="#exam-scheme">Exam scheme</a>
         <a href="#reference-title">Resources</a>
         <a href="My%20checkscore.html">My checklist</a>
+        <a href="My%20planner.html">My planner</a>
         <a class="nav-action" href="#search">Find a course</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -1107,6 +1117,189 @@
           </div>
         </div>
       </details>
+
+      <details class="reference">
+        <summary>NEP 2020 and the UN SDGs — key policies, all 17 goals and where they appear in this syllabus</summary>
+        <div class="reference-content">
+          <h3 class="ref-group">National Education Policy (NEP) 2020</h3>
+
+          <div class="ref-grid">
+            <div class="reference-part">
+              <h4>The basics</h4>
+              <ul>
+                <li><strong>What it is:</strong> India's national framework for school and higher education.</li>
+                <li><strong>Approved:</strong> Union Cabinet, 29 July 2020.</li>
+                <li><strong>Replaced:</strong> the National Policy on Education, 1986.</li>
+                <li><strong>Drafted by:</strong> a committee led by Dr K. Kasturirangan.</li>
+                <li><strong>Status:</strong> a policy, not a law. Governments and institutions carry it out in stages.</li>
+                <li><strong>Link to the SDGs:</strong> the policy cites SDG 4 as part of its purpose.</li>
+              </ul>
+            </div>
+            <div class="reference-part">
+              <h4>Targets the policy set</h4>
+              <table class="ref-table ref-text">
+                <thead><tr><th>Area</th><th>Target</th><th>By</th></tr></thead>
+                <tbody>
+                  <tr><td>Reading and maths basics</td><td>Every child by Grade 3</td><td>2025</td></tr>
+                  <tr><td>Vocational exposure</td><td>At least 50% of learners</td><td>2025</td></tr>
+                  <tr><td>School enrolment (GER)</td><td>100%</td><td>2030</td></tr>
+                  <tr><td>Teacher qualification</td><td>4-year integrated B.Ed.</td><td>2030</td></tr>
+                  <tr><td>Higher education enrolment (GER)</td><td>50%, up from 26.3% in 2018</td><td>2035</td></tr>
+                  <tr><td>College affiliation</td><td>Phased out over 15 years</td><td>2035</td></tr>
+                  <tr><td>Public spending on education</td><td>6% of GDP</td><td>Earliest possible</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="ref-grid">
+            <div class="reference-part">
+              <h4>School education: 5+3+3+4 replaces 10+2</h4>
+              <table class="ref-table ref-text">
+                <thead><tr><th>Stage</th><th>Age</th><th>Classes</th></tr></thead>
+                <tbody>
+                  <tr><td>Foundational (5 years)</td><td>3–8</td><td>Pre-school + Grades 1–2</td></tr>
+                  <tr><td>Preparatory (3 years)</td><td>8–11</td><td>Grades 3–5</td></tr>
+                  <tr><td>Middle (3 years)</td><td>11–14</td><td>Grades 6–8</td></tr>
+                  <tr><td>Secondary (4 years)</td><td>14–18</td><td>Grades 9–12</td></tr>
+                </tbody>
+              </table>
+              <ul>
+                <li><strong>Language:</strong> mother tongue or local language as the medium until at least Grade 5, preferably Grade 8.</li>
+                <li><strong>Exams:</strong> school exams in Grades 3, 5 and 8; redesigned board exams in Grades 10 and 12.</li>
+              </ul>
+            </div>
+            <div class="reference-part">
+              <h4>Undergraduate exit options</h4>
+              <table class="ref-table ref-text">
+                <thead><tr><th>Study completed</th><th>What you receive</th></tr></thead>
+                <tbody>
+                  <tr><td>1 year</td><td>Certificate</td></tr>
+                  <tr><td>2 years</td><td>Diploma</td></tr>
+                  <tr><td>3 years</td><td>Bachelor's degree</td></tr>
+                  <tr><td>4 years</td><td>Bachelor's degree with research</td></tr>
+                </tbody>
+              </table>
+              <p>This is the general NEP model. <strong>Your syllabus does not list exit options for this B.E.</strong>, so confirm the rules with the college before relying on them.</p>
+            </div>
+          </div>
+
+          <div class="reference-part">
+            <h4>Higher education reforms</h4>
+            <ul>
+              <li><strong>Academic Bank of Credits (ABC):</strong> a digital record of your credits, so they can move between institutions. It links to APAAR, a 12-digit student ID.</li>
+              <li><strong>Multidisciplinary learning:</strong> students can combine subjects across fields, and MERUs (Multidisciplinary Education and Research Universities) are meant to set the standard.</li>
+              <li><strong>Autonomy:</strong> colleges move away from university affiliation in stages, towards running their own curriculum and exams. Terna's autonomous curriculum follows this direction.</li>
+              <li><strong>National Research Foundation:</strong> an apex body to fund and coordinate research, set up in law as the Anusandhan National Research Foundation (ANRF Act, 2023).</li>
+              <li><strong>M.Phil:</strong> discontinued.</li>
+              <li><strong>Seats:</strong> 3.5 crore new higher-education seats planned.</li>
+            </ul>
+          </div>
+
+          <div class="reference-part">
+            <h4>The planned single regulator</h4>
+            <p>NEP proposes one umbrella body, the <strong>Higher Education Commission of India (HECI)</strong>, for all higher education except medical and legal education. It has four verticals:</p>
+            <table class="ref-table ref-text">
+              <thead><tr><th>Vertical</th><th>Role</th></tr></thead>
+              <tbody>
+                <tr><td>NHERC</td><td>Regulation</td></tr>
+                <tr><td>NAC</td><td>Accreditation</td></tr>
+                <tr><td>HEGC</td><td>Funding</td></tr>
+                <tr><td>GEC</td><td>Academic standards</td></tr>
+              </tbody>
+            </table>
+            <p><strong>Current position:</strong> the Viksit Bharat Shiksha Adhishthan Bill, 2025 would replace UGC, AICTE and NCTE with one regulator. It was still with a Joint Parliamentary Committee in the latest reports found (July 2026), so check for newer updates.</p>
+          </div>
+
+          <div class="reference-part">
+            <h4>Where NEP shows up in your syllabus</h4>
+            <table class="ref-table ref-text">
+              <thead><tr><th>NEP idea</th><th>In this syllabus</th></tr></thead>
+              <tbody>
+                <tr><td>Experiential, project-based learning</td><td>Nirman Lab I and II, with six theme-based problem statements each semester</td></tr>
+                <tr><td>Skill and vocational education</td><td>Workshop I (InnoTech) and Workshop II (FAB Lab)</td></tr>
+                <tr><td>Indian Knowledge Systems</td><td>Indian Wisdom for Modern Challenges (IKS201)</td></tr>
+                <tr><td>Holistic and value-based education</td><td>Social Innovation and Engineering Ethics, NSS &amp; Civil Defense / Yoga for Adolescents</td></tr>
+                <tr><td>Communication skills</td><td>Professional Communication Skills for Engineers in the Age of AI</td></tr>
+                <tr><td>Continuous assessment</td><td>IAT-I and IAT-II, term work and monthly Nirman Lab reviews</td></tr>
+                <tr><td>Self-directed learning</td><td>Self-learning topics, about 30% of assignments and lab work</td></tr>
+                <tr><td>Credit framework</td><td>Credit structure as per the Government Resolution dated 4 July 2023</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="ref-group">UN Sustainable Development Goals (SDGs)</h3>
+
+          <div class="reference-part">
+            <h4>The basics</h4>
+            <ul>
+              <li><strong>What they are:</strong> 17 goals and 169 targets, a shared global plan for people, prosperity and the planet.</li>
+              <li><strong>Adopted:</strong> by all UN Member States in September 2015, as the 2030 Agenda.</li>
+              <li><strong>Deadline:</strong> 2030.</li>
+              <li><strong>Don't confuse it with SEDGs:</strong> in NEP, this means Socio-Economically Disadvantaged Groups.</li>
+            </ul>
+          </div>
+
+          <div class="reference-part">
+            <h4>All 17 goals</h4>
+            <p>Highlighted goals are named in your syllabus, with where they appear.</p>
+            <dl class="abbreviation-grid sdg-grid">
+              <div class="abbreviation"><dt>SDG 1</dt><dd><strong>No Poverty.</strong> End poverty in all its forms everywhere.</dd></div>
+              <div class="abbreviation"><dt>SDG 2</dt><dd><strong>Zero Hunger.</strong> End hunger, improve nutrition and promote sustainable farming.</dd></div>
+              <div class="abbreviation"><dt>SDG 3</dt><dd><strong>Good Health and Well-being.</strong> Healthy lives for all, at all ages.</dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 4</dt><dd><strong>Quality Education.</strong> Inclusive, equitable education and lifelong learning.<small>Semester I theme + 10 courses</small></dd></div>
+              <div class="abbreviation"><dt>SDG 5</dt><dd><strong>Gender Equality.</strong> Equality and empowerment for all women and girls.</dd></div>
+              <div class="abbreviation"><dt>SDG 6</dt><dd><strong>Clean Water and Sanitation.</strong> Safe water and sanitation for all.</dd></div>
+              <div class="abbreviation"><dt>SDG 7</dt><dd><strong>Affordable and Clean Energy.</strong> Reliable, sustainable, modern energy for all.</dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 8</dt><dd><strong>Decent Work and Economic Growth.</strong> Sustainable growth and decent jobs for all.<small>Semester II theme + 6 courses</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 9</dt><dd><strong>Industry, Innovation and Infrastructure.</strong> Resilient infrastructure and innovation.<small>Both themes + 9 courses</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 10</dt><dd><strong>Reduced Inequalities.</strong> Less inequality within and among countries.<small>Semester I theme + Web Technology Lab</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 11</dt><dd><strong>Sustainable Cities and Communities.</strong> Inclusive, safe, resilient cities.<small>Both themes + 4 courses</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 12</dt><dd><strong>Responsible Consumption and Production.</strong> Sustainable use of resources.<small>Semester II theme</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 13</dt><dd><strong>Climate Action.</strong> Urgent action on climate change and its impacts.<small>Foundation of Network Science</small></dd></div>
+              <div class="abbreviation"><dt>SDG 14</dt><dd><strong>Life Below Water.</strong> Conserve oceans, seas and marine resources.</dd></div>
+              <div class="abbreviation"><dt>SDG 15</dt><dd><strong>Life on Land.</strong> Protect ecosystems and forests, and halt biodiversity loss.</dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 16</dt><dd><strong>Peace, Justice and Strong Institutions.</strong> Justice for all and accountable institutions.<small>3 courses</small></dd></div>
+              <div class="abbreviation in-syllabus"><dt>SDG 17</dt><dd><strong>Partnerships for the Goals.</strong> Global cooperation to deliver the goals.<small>Both themes</small></dd></div>
+            </dl>
+          </div>
+
+          <div class="reference-part">
+            <h4>SDGs named for each theme and course</h4>
+            <table class="ref-table ref-text">
+              <thead><tr><th>Theme or course</th><th>SDGs</th></tr></thead>
+              <tbody>
+                <tr><td>Semester I theme: Digital Bharat for Inclusive Learning</td><td>4, 9, 10, 11, 17</td></tr>
+                <tr><td>Semester II theme: Smart Vikasit Bharat</td><td>8, 9, 11, 12, 17</td></tr>
+                <tr><td>Applied Physics for Computer Technology</td><td>4, 9</td></tr>
+                <tr><td>Programming for Problem Solving Using C</td><td>4, 8, 9, 11, 16</td></tr>
+                <tr><td>Programming for Problem Solving Using C Lab</td><td>4, 8, 9, 11, 16</td></tr>
+                <tr><td>Workshop I (InnoTech Workshop)</td><td>4, 8, 9</td></tr>
+                <tr><td>Engineering Mechanics &amp; Graphics</td><td>4, 11</td></tr>
+                <tr><td>Foundation of Network Science</td><td>4, 9, 11, 13, 16</td></tr>
+                <tr><td>Web Technology</td><td>4, 8, 9</td></tr>
+                <tr><td>Web Technology Lab</td><td>4, 9, 10</td></tr>
+                <tr><td>Data Structure Lab</td><td>4, 8, 9</td></tr>
+                <tr><td>Workshop II (FAB Lab)</td><td>4, 8, 9</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>Social Innovation and Engineering Ethics</strong> teaches the SDGs directly in Module 4, and one activity asks you to explore how engineers contribute to any 2 goals.</li>
+              <li><strong>NSS &amp; Civil Defense</strong> includes the role of youth in the SDGs as a self-learning topic.</li>
+              <li><strong>Nirman Lab</strong> projects use problem statements aligned with the semester's SDGs.</li>
+            </ul>
+          </div>
+
+          <div class="reference-part">
+            <h4>Sources</h4>
+            <ul>
+              <li><a href="https://www.education.gov.in/sites/upload_files/mhrd/files/NEP_Final_English_0.pdf" target="_blank" rel="noopener">National Education Policy 2020, Ministry of Education</a></li>
+              <li><a href="https://sdgs.un.org/goals" target="_blank" rel="noopener">The 17 Goals, United Nations</a></li>
+              <li>Course mappings come from the rationale sections of this syllabus. Its Web Technology pages say &ldquo;NEP 2021&rdquo;, but the policy is NEP 2020.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
     </section>
 
     <section class="notes">
@@ -1116,6 +1309,7 @@
         <li><strong>Filter:</strong> pick a course type from the dropdown to narrow the list.</li>
         <li><strong>Open a subject:</strong> click it in the left-hand list to see its rationale, objectives, outcomes and modules.</li>
         <li><strong>Track progress:</strong> use <a href="My%20checkscore.html">My checklist</a> to tick off completed modules.</li>
+        <li><strong>Plan your study:</strong> use <a href="My%20planner.html">My planner</a> for a day-by-day schedule of every subject.</li>
         <li><strong>Short forms:</strong> IAT = Internal Assessment Test, ESE = End-Semester Exam, TW = Term Work, OR = Oral.</li>
         <li><strong>Marks and credits</strong> follow the official exam and curriculum scheme.</li>
         <li><strong>NSS &amp; Civil Defense / Yoga</strong> share one course code. Confirm your activity with the college.</li>
